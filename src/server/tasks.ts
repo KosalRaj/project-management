@@ -1,0 +1,271 @@
+import { createServerFn } from '@tanstack/react-start'
+import { db, ensureTablesExist } from '@/db'
+import { tasks, projects, type TaskStatus, type TaskPriority, type TaskType, type CommentItem } from '@/db/schema'
+import { eq, desc, inArray } from 'drizzle-orm'
+
+// 1. Get all tasks with optional filters
+export const getTasksFn = createServerFn({ method: 'GET' })
+  .validator(
+    (data?: {
+      projectId?: string
+      status?: string
+      priority?: string
+      type?: string
+      assigneeId?: string
+      search?: string
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    await ensureTablesExist()
+
+    const allTasks = await db.select().from(tasks).orderBy(desc(tasks.createdAt))
+
+    let result = allTasks
+
+    if (data?.projectId && data.projectId !== 'all') {
+      result = result.filter((t) => t.projectId === data.projectId)
+    }
+
+    if (data?.status && data.status !== 'all') {
+      result = result.filter((t) => t.status === data.status)
+    }
+
+    if (data?.priority && data.priority !== 'all') {
+      result = result.filter((t) => t.priority === data.priority)
+    }
+
+    if (data?.type && data.type !== 'all') {
+      result = result.filter((t) => t.type === data.type)
+    }
+
+    if (data?.assigneeId && data.assigneeId !== 'all') {
+      result = result.filter((t) => t.assigneeId === data.assigneeId)
+    }
+
+    if (data?.search && data.search.trim()) {
+      const q = data.search.toLowerCase()
+      result = result.filter(
+        (t) =>
+          t.title.toLowerCase().includes(q) ||
+          t.taskKey.toLowerCase().includes(q) ||
+          (t.description && t.description.toLowerCase().includes(q)),
+      )
+    }
+
+    return result
+  })
+
+// 2. Get single task by ID
+export const getTaskByIdFn = createServerFn({ method: 'GET' })
+  .validator((data: { id: string }) => data)
+  .handler(async ({ data }) => {
+    await ensureTablesExist()
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, data.id)).limit(1)
+    if (!task) {
+      throw new Error('Task not found')
+    }
+    return task
+  })
+
+// 3. Create new task
+export const createTaskFn = createServerFn({ method: 'POST' })
+  .validator(
+    (data: {
+      projectId: string
+      title: string
+      description?: string
+      status?: TaskStatus
+      priority?: TaskPriority
+      type?: TaskType
+      estimatePoints?: number | null
+      assigneeId?: string
+      assigneeName?: string
+      assigneeAvatar?: string
+      dueDate?: string
+      labels?: string[]
+      subtasks?: { id: string; title: string; completed: boolean }[]
+    }) => {
+      if (!data.title || data.title.trim().length === 0) throw new Error('Task title is required')
+      if (!data.projectId) throw new Error('Project ID is required')
+      return data
+    },
+  )
+  .handler(async ({ data }) => {
+    await ensureTablesExist()
+
+    // 1. Fetch project to get key
+    const [project] = await db.select().from(projects).where(eq(projects.id, data.projectId)).limit(1)
+    if (!project) {
+      throw new Error('Project not found')
+    }
+
+    // 2. Find max task number for this project
+    const projectTasks = await db.select().from(tasks).where(eq(tasks.projectId, data.projectId))
+    const maxNumber = projectTasks.reduce((max, t) => Math.max(max, t.taskNumber || 0), 100)
+    const nextNumber = maxNumber + 1
+    const taskKey = `${project.key}-${nextNumber}`
+
+    const [newTask] = await db
+      .insert(tasks)
+      .values({
+        taskNumber: nextNumber,
+        taskKey,
+        projectId: data.projectId,
+        title: data.title.trim(),
+        description: data.description?.trim() || null,
+        status: data.status || 'todo',
+        priority: data.priority || 'medium',
+        type: data.type || 'feature',
+        estimatePoints: data.estimatePoints || null,
+        assigneeId: data.assigneeId || null,
+        assigneeName: data.assigneeName || null,
+        assigneeAvatar: data.assigneeAvatar || null,
+        dueDate: data.dueDate || null,
+        labels: JSON.stringify(data.labels || []),
+        subtasks: JSON.stringify(data.subtasks || []),
+        comments: JSON.stringify([]),
+        sortOrder: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      .returning()
+
+    return newTask
+  })
+
+// 4. Update task
+export const updateTaskFn = createServerFn({ method: 'POST' })
+  .validator(
+    (data: {
+      id: string
+      title?: string
+      description?: string
+      status?: TaskStatus
+      priority?: TaskPriority
+      type?: TaskType
+      estimatePoints?: number | null
+      assigneeId?: string | null
+      assigneeName?: string | null
+      assigneeAvatar?: string | null
+      dueDate?: string | null
+      labels?: string[]
+      subtasks?: { id: string; title: string; completed: boolean }[]
+      comments?: any[]
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    await ensureTablesExist()
+    const { id, labels, subtasks, comments, ...rest } = data
+
+    const updates: Record<string, any> = {
+      ...rest,
+      updatedAt: new Date().toISOString(),
+    }
+
+    if (labels !== undefined) {
+      updates.labels = JSON.stringify(labels)
+    }
+    if (subtasks !== undefined) {
+      updates.subtasks = JSON.stringify(subtasks)
+    }
+    if (comments !== undefined) {
+      updates.comments = JSON.stringify(comments)
+    }
+
+    const [updated] = await db.update(tasks).set(updates).where(eq(tasks.id, id)).returning()
+    return updated
+  })
+
+// 5. Delete task
+export const deleteTaskFn = createServerFn({ method: 'POST' })
+  .validator((data: { id: string }) => data)
+  .handler(async ({ data }) => {
+    await ensureTablesExist()
+    await db.delete(tasks).where(eq(tasks.id, data.id))
+    return { success: true }
+  })
+
+// 6. Batch update tasks
+export const batchUpdateTasksFn = createServerFn({ method: 'POST' })
+  .validator(
+    (data: {
+      ids: string[]
+      action: 'status' | 'priority' | 'delete'
+      value?: string
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    await ensureTablesExist()
+
+    if (data.ids.length === 0) return { success: true, count: 0 }
+
+    if (data.action === 'delete') {
+      await db.delete(tasks).where(inArray(tasks.id, data.ids))
+      return { success: true, count: data.ids.length }
+    }
+
+    if (data.action === 'status' && data.value) {
+      await db
+        .update(tasks)
+        .set({ status: data.value as TaskStatus, updatedAt: new Date().toISOString() })
+        .where(inArray(tasks.id, data.ids))
+      return { success: true, count: data.ids.length }
+    }
+
+    if (data.action === 'priority' && data.value) {
+      await db
+        .update(tasks)
+        .set({ priority: data.value as TaskPriority, updatedAt: new Date().toISOString() })
+        .where(inArray(tasks.id, data.ids))
+      return { success: true, count: data.ids.length }
+    }
+
+    return { success: true, count: data.ids.length }
+  })
+
+// 7. Add comment to task
+export const addCommentToTaskFn = createServerFn({ method: 'POST' })
+  .validator(
+    (data: {
+      taskId: string
+      authorName: string
+      authorAvatar?: string
+      content: string
+    }) => {
+      if (!data.content || data.content.trim().length === 0) throw new Error('Comment content cannot be empty')
+      return data
+    },
+  )
+  .handler(async ({ data }) => {
+    await ensureTablesExist()
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, data.taskId)).limit(1)
+    if (!task) throw new Error('Task not found')
+
+    let comments: CommentItem[] = []
+    try {
+      comments = JSON.parse(task.comments || '[]')
+    } catch {
+      comments = []
+    }
+
+    const newComment: CommentItem = {
+      id: crypto.randomUUID(),
+      authorName: data.authorName,
+      authorAvatar: data.authorAvatar,
+      content: data.content.trim(),
+      createdAt: new Date().toISOString(),
+    }
+
+    comments.push(newComment)
+
+    const [updated] = await db
+      .update(tasks)
+      .set({
+        comments: JSON.stringify(comments),
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(tasks.id, data.taskId))
+      .returning()
+
+    return updated
+  })
