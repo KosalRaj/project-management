@@ -12,6 +12,6 @@ dist-ssr
 __unconfig*
 todos.json
 ._*
-
+.vscode
 .agents/
 .claude/
