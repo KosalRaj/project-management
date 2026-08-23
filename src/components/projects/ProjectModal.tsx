@@ -12,6 +12,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useShakeError } from '@/components/ui/transitions'
 import type { Project, ProjectStatus, ProjectHealth, SafeUser } from '@/db/schema'
 import {
@@ -282,34 +289,56 @@ export function ProjectModal({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                   Project Health
                 </label>
-                <select
+                <Select
                   value={health}
-                  onChange={(e) => setHealth(e.target.value as ProjectHealth)}
-                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  onValueChange={(val) => setHealth((val as ProjectHealth) || 'on_track')}
                 >
-                  {Object.entries(PROJECT_HEALTH_CONFIG).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v.label}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium">
+                    <SelectValue placeholder="Health">
+                      {(val) => {
+                        const h = (val as ProjectHealth) || 'on_track'
+                        const cfg = PROJECT_HEALTH_CONFIG[h] || PROJECT_HEALTH_CONFIG.on_track
+                        return (
+                          <span className="flex items-center gap-1.5 truncate">
+                            <span className={`size-2 rounded-full ${cfg.dot}`} />
+                            <span className="truncate">{cfg.label}</span>
+                          </span>
+                        )
+                      }}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectPopup>
+                    {Object.entries(PROJECT_HEALTH_CONFIG).map(([k, v]) => (
+                      <SelectItem key={k} value={k} className="text-xs">
+                        <span className="flex items-center gap-1.5">
+                          <span className={`size-2 rounded-full ${v.dot}`} />
+                          <span>{v.label}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectPopup>
+                </Select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                   Status
                 </label>
-                <select
+                <Select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value as ProjectStatus)}
-                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring capitalize"
+                  onValueChange={(val) => setStatus((val as ProjectStatus) || 'active')}
                 >
-                  <option value="planning">Planning</option>
-                  <option value="active">Active</option>
-                  <option value="paused">Paused</option>
-                  <option value="completed">Completed</option>
-                  <option value="canceled">Canceled</option>
-                </select>
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium capitalize">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectPopup>
+                    {(['planning', 'active', 'paused', 'completed', 'canceled'] as ProjectStatus[]).map((st) => (
+                      <SelectItem key={st} value={st} className="text-xs capitalize">
+                        {st}
+                      </SelectItem>
+                    ))}
+                  </SelectPopup>
+                </Select>
               </div>
             </div>
 
@@ -319,18 +348,30 @@ export function ProjectModal({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
                   <User className="size-3.5" /> Project Lead
                 </label>
-                <select
-                  value={leadId}
-                  onChange={(e) => setLeadId(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                <Select
+                  value={leadId || 'unassigned'}
+                  onValueChange={(val) => setLeadId(val === 'unassigned' ? '' : (val as string))}
                 >
-                  <option value="">Unassigned</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.role})
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium">
+                    <SelectValue placeholder="Select Lead">
+                      {(val) => {
+                        if (!val || val === 'unassigned') return 'Unassigned'
+                        const u = users.find((user) => user.id === val)
+                        return u ? `${u.name} (${u.role})` : 'Unassigned'
+                      }}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectPopup>
+                    <SelectItem value="unassigned" className="text-xs">
+                      Unassigned
+                    </SelectItem>
+                    {users.map((u) => (
+                      <SelectItem key={u.id} value={u.id} className="text-xs">
+                        {u.name} ({u.role})
+                      </SelectItem>
+                    ))}
+                  </SelectPopup>
+                </Select>
               </div>
 
               <div>

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Sun, Moon, Monitor } from 'lucide-react'
+import { IconSwap, TextSwap } from '@/components/ui/transitions'
 
 type ThemeMode = 'light' | 'dark' | 'auto'
 
@@ -67,15 +69,24 @@ export default function ThemeToggle() {
       ? 'Theme mode: auto (system). Click to switch to light mode.'
       : `Theme mode: ${mode}. Click to switch mode.`
 
+  const displayText = mode === 'auto' ? 'Auto' : mode === 'dark' ? 'Dark' : 'Light'
+
   return (
     <button
       type="button"
       onClick={toggleMode}
       aria-label={label}
       title={label}
-      className="rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--sea-ink)] shadow-[0_8px_22px_rgba(30,90,72,0.08)] transition hover:-translate-y-0.5"
+      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--sea-ink)] shadow-[0_8px_22px_rgba(30,90,72,0.08)] transition hover:-translate-y-0.5 active:translate-y-0"
     >
-      {mode === 'auto' ? 'Auto' : mode === 'dark' ? 'Dark' : 'Light'}
+      <IconSwap
+        state={mode === 'dark' ? 'b' : 'a'}
+        iconA={mode === 'auto' ? <Monitor className="size-3.5" /> : <Sun className="size-3.5 text-amber-500" />}
+        iconB={<Moon className="size-3.5 text-sky-400" />}
+        className="size-3.5"
+      />
+      <TextSwap text={displayText} className="min-w-[2.2rem] text-left" />
     </button>
   )
 }
+

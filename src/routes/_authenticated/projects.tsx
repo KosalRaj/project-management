@@ -9,6 +9,13 @@ import { AnimatedDigitGroup, SuccessCheckIcon } from '@/components/ui/transition
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Folder,
   Plus,
   Search,
@@ -236,29 +243,44 @@ function ProjectsPage() {
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           {/* Health Filter */}
-          <select
+          <Select
             value={healthFilter}
-            onChange={(e) => setHealthFilter(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none"
+            onValueChange={(val) => setHealthFilter((val as string) || 'all')}
           >
-            <option value="all">All Health</option>
-            <option value="on_track">On Track</option>
-            <option value="at_risk">At Risk</option>
-            <option value="off_track">Off Track</option>
-          </select>
+            <SelectTrigger className="h-9 min-w-32 bg-background text-xs font-medium">
+              <SelectValue placeholder="All Health">
+                {(val) => {
+                  if (val === 'all' || !val) return 'All Health'
+                  if (val === 'on_track') return '🟢 On Track'
+                  if (val === 'at_risk') return '🟡 At Risk'
+                  return '🔴 Off Track'
+                }}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectPopup>
+              <SelectItem value="all" className="text-xs">All Health</SelectItem>
+              <SelectItem value="on_track" className="text-xs">🟢 On Track</SelectItem>
+              <SelectItem value="at_risk" className="text-xs">🟡 At Risk</SelectItem>
+              <SelectItem value="off_track" className="text-xs">🔴 Off Track</SelectItem>
+            </SelectPopup>
+          </Select>
 
           {/* Status Filter */}
-          <select
+          <Select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none capitalize"
+            onValueChange={(val) => setStatusFilter((val as string) || 'all')}
           >
-            <option value="all">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="planning">Planning</option>
-            <option value="paused">Paused</option>
-            <option value="completed">Completed</option>
-          </select>
+            <SelectTrigger className="h-9 min-w-32 bg-background text-xs font-medium capitalize">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectPopup>
+              <SelectItem value="all" className="text-xs">All Statuses</SelectItem>
+              <SelectItem value="active" className="text-xs">Active</SelectItem>
+              <SelectItem value="planning" className="text-xs">Planning</SelectItem>
+              <SelectItem value="paused" className="text-xs">Paused</SelectItem>
+              <SelectItem value="completed" className="text-xs">Completed</SelectItem>
+            </SelectPopup>
+          </Select>
         </div>
       </div>
 

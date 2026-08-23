@@ -18,6 +18,13 @@ import { TaskModal } from '@/components/tasks/TaskModal'
 import { DeleteConfirmDialog } from '@/components/dashboard/DeleteConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { SuccessCheckIcon } from '@/components/ui/transitions'
 import type { Task, TaskStatus } from '@/db/schema'
 import {
@@ -363,58 +370,80 @@ function TasksPage() {
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Project Filter */}
-          <select
+          <Select
             value={projectFilter}
-            onChange={(e) => setProjectFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none"
+            onValueChange={(val) => setProjectFilter((val as string) || 'all')}
           >
-            <option value="all">All Projects</option>
-            {projects.map((p: any) => (
-              <option key={p.id} value={p.id}>
-                [{p.key}] {p.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="h-8 min-w-32 bg-background text-xs font-medium">
+              <SelectValue placeholder="All Projects">
+                {(val) => {
+                  if (val === 'all' || !val) return 'All Projects'
+                  const p = projects.find((proj: any) => proj.id === val)
+                  return p ? `[${p.key}] ${p.name}` : 'All Projects'
+                }}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectPopup>
+              <SelectItem value="all" className="text-xs">All Projects</SelectItem>
+              {projects.map((p: any) => (
+                <SelectItem key={p.id} value={p.id} className="text-xs">
+                  <span className="font-mono font-bold mr-1">[{p.key}]</span> {p.name}
+                </SelectItem>
+              ))}
+            </SelectPopup>
+          </Select>
 
           {/* Status Filter */}
-          <select
+          <Select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none capitalize"
+            onValueChange={(val) => setStatusFilter((val as string) || 'all')}
           >
-            <option value="all">All Statuses</option>
-            <option value="backlog">Backlog</option>
-            <option value="todo">To Do</option>
-            <option value="in_progress">In Progress</option>
-            <option value="in_review">In Review</option>
-            <option value="done">Done</option>
-          </select>
+            <SelectTrigger className="h-8 min-w-28 bg-background text-xs font-medium capitalize">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectPopup>
+              <SelectItem value="all" className="text-xs">All Statuses</SelectItem>
+              <SelectItem value="backlog" className="text-xs">Backlog</SelectItem>
+              <SelectItem value="todo" className="text-xs">To Do</SelectItem>
+              <SelectItem value="in_progress" className="text-xs">In Progress</SelectItem>
+              <SelectItem value="in_review" className="text-xs">In Review</SelectItem>
+              <SelectItem value="done" className="text-xs">Done</SelectItem>
+            </SelectPopup>
+          </Select>
 
           {/* Priority Filter */}
-          <select
+          <Select
             value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none capitalize"
+            onValueChange={(val) => setPriorityFilter((val as string) || 'all')}
           >
-            <option value="all">All Priorities</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
+            <SelectTrigger className="h-8 min-w-28 bg-background text-xs font-medium capitalize">
+              <SelectValue placeholder="All Priorities" />
+            </SelectTrigger>
+            <SelectPopup>
+              <SelectItem value="all" className="text-xs">All Priorities</SelectItem>
+              <SelectItem value="urgent" className="text-xs">🔴 Urgent</SelectItem>
+              <SelectItem value="high" className="text-xs">🟠 High</SelectItem>
+              <SelectItem value="medium" className="text-xs">🔵 Medium</SelectItem>
+              <SelectItem value="low" className="text-xs">⚪ Low</SelectItem>
+            </SelectPopup>
+          </Select>
 
           {/* Type Filter */}
-          <select
+          <Select
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none capitalize"
+            onValueChange={(val) => setTypeFilter((val as string) || 'all')}
           >
-            <option value="all">All Types</option>
-            <option value="feature">Feature</option>
-            <option value="bug">Bug</option>
-            <option value="task">Task</option>
-            <option value="improvement">Improvement</option>
-          </select>
+            <SelectTrigger className="h-8 min-w-28 bg-background text-xs font-medium capitalize">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectPopup>
+              <SelectItem value="all" className="text-xs">All Types</SelectItem>
+              <SelectItem value="feature" className="text-xs">Feature</SelectItem>
+              <SelectItem value="bug" className="text-xs">Bug</SelectItem>
+              <SelectItem value="task" className="text-xs">Task</SelectItem>
+              <SelectItem value="improvement" className="text-xs">Improvement</SelectItem>
+            </SelectPopup>
+          </Select>
         </div>
       </div>
 

@@ -17,6 +17,13 @@ import { ProjectModal } from '@/components/projects/ProjectModal'
 import { DeleteConfirmDialog } from '@/components/dashboard/DeleteConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -356,29 +363,37 @@ function ProjectWorkspacePage() {
             />
           </div>
 
-          <select
+          <Select
             value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none"
+            onValueChange={(val) => setPriorityFilter((val as string) || 'all')}
           >
-            <option value="all">All Priorities</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
+            <SelectTrigger className="h-8 min-w-32 bg-background text-xs font-medium capitalize">
+              <SelectValue placeholder="All Priorities" />
+            </SelectTrigger>
+            <SelectPopup>
+              <SelectItem value="all" className="text-xs">All Priorities</SelectItem>
+              <SelectItem value="urgent" className="text-xs">🔴 Urgent</SelectItem>
+              <SelectItem value="high" className="text-xs">🟠 High</SelectItem>
+              <SelectItem value="medium" className="text-xs">🔵 Medium</SelectItem>
+              <SelectItem value="low" className="text-xs">⚪ Low</SelectItem>
+            </SelectPopup>
+          </Select>
 
-          <select
+          <Select
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none"
+            onValueChange={(val) => setTypeFilter((val as string) || 'all')}
           >
-            <option value="all">All Types</option>
-            <option value="feature">Feature</option>
-            <option value="bug">Bug</option>
-            <option value="task">Task</option>
-            <option value="improvement">Improvement</option>
-          </select>
+            <SelectTrigger className="h-8 min-w-28 bg-background text-xs font-medium capitalize">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectPopup>
+              <SelectItem value="all" className="text-xs">All Types</SelectItem>
+              <SelectItem value="feature" className="text-xs">Feature</SelectItem>
+              <SelectItem value="bug" className="text-xs">Bug</SelectItem>
+              <SelectItem value="task" className="text-xs">Task</SelectItem>
+              <SelectItem value="improvement" className="text-xs">Improvement</SelectItem>
+            </SelectPopup>
+          </Select>
         </div>
       </div>
 

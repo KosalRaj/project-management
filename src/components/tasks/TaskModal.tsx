@@ -12,6 +12,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useShakeError } from '@/components/ui/transitions'
 import type { Task, Project, SafeUser, TaskStatus, TaskPriority, TaskType } from '@/db/schema'
 import {
@@ -192,18 +199,26 @@ export function TaskModal({
               <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
                 <Folder className="size-3.5" /> Project
               </label>
-              <select
+              <Select
                 value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-                className="w-full h-9 px-3 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                required
+                onValueChange={(val) => setProjectId((val as string) || '')}
               >
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    [{p.key}] {p.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="h-9 w-full bg-background text-xs font-medium">
+                  <SelectValue placeholder="Select Project">
+                    {(val) => {
+                      const p = projects.find((proj) => proj.id === val)
+                      return p ? `[${p.key}] ${p.name}` : 'Select Project'
+                    }}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectPopup>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id} className="text-xs">
+                      <span className="font-mono font-bold mr-1">[{p.key}]</span> {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectPopup>
+              </Select>
             </div>
 
             {/* Title */}
@@ -227,17 +242,21 @@ export function TaskModal({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                   Type
                 </label>
-                <select
+                <Select
                   value={type}
-                  onChange={(e) => setType(e.target.value as TaskType)}
-                  className="w-full h-9 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring capitalize"
+                  onValueChange={(val) => setType((val as TaskType) || 'feature')}
                 >
-                  {Object.entries(TASK_TYPE_CONFIG).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v.label}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium capitalize">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectPopup>
+                    {Object.entries(TASK_TYPE_CONFIG).map(([k, v]) => (
+                      <SelectItem key={k} value={k} className="text-xs capitalize">
+                        {v.label}
+                      </SelectItem>
+                    ))}
+                  </SelectPopup>
+                </Select>
               </div>
 
               {/* Priority */}
@@ -245,17 +264,21 @@ export function TaskModal({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                   Priority
                 </label>
-                <select
+                <Select
                   value={priority}
-                  onChange={(e) => setPriority(e.target.value as TaskPriority)}
-                  className="w-full h-9 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring capitalize"
+                  onValueChange={(val) => setPriority((val as TaskPriority) || 'medium')}
                 >
-                  {Object.entries(TASK_PRIORITY_CONFIG).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v.label}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium capitalize">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectPopup>
+                    {Object.entries(TASK_PRIORITY_CONFIG).map(([k, v]) => (
+                      <SelectItem key={k} value={k} className="text-xs capitalize">
+                        {v.label}
+                      </SelectItem>
+                    ))}
+                  </SelectPopup>
+                </Select>
               </div>
 
               {/* Status */}
@@ -263,17 +286,21 @@ export function TaskModal({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                   Status
                 </label>
-                <select
+                <Select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                  className="w-full h-9 px-2.5 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring capitalize"
+                  onValueChange={(val) => setStatus((val as TaskStatus) || 'todo')}
                 >
-                  {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v.label}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium capitalize">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectPopup>
+                    {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => (
+                      <SelectItem key={k} value={k} className="text-xs capitalize">
+                        {v.label}
+                      </SelectItem>
+                    ))}
+                  </SelectPopup>
+                </Select>
               </div>
             </div>
 
@@ -283,37 +310,58 @@ export function TaskModal({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
                   <User className="size-3.5" /> Assignee
                 </label>
-                <select
-                  value={assigneeId}
-                  onChange={(e) => setAssigneeId(e.target.value)}
-                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                <Select
+                  value={assigneeId || 'unassigned'}
+                  onValueChange={(val) => setAssigneeId(val === 'unassigned' ? '' : (val as string))}
                 >
-                  <option value="">Unassigned</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.role})
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium">
+                    <SelectValue placeholder="Assignee">
+                      {(val) => {
+                        if (!val || val === 'unassigned') return 'Unassigned'
+                        const u = users.find((user) => user.id === val)
+                        return u ? `${u.name} (${u.role})` : 'Unassigned'
+                      }}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectPopup>
+                    <SelectItem value="unassigned" className="text-xs">
+                      Unassigned
+                    </SelectItem>
+                    {users.map((u) => (
+                      <SelectItem key={u.id} value={u.id} className="text-xs">
+                        {u.name} ({u.role})
+                      </SelectItem>
+                    ))}
+                  </SelectPopup>
+                </Select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
                   <Zap className="size-3.5 text-amber-500" /> Story Points Estimate
                 </label>
-                <select
-                  value={estimatePoints ?? ''}
-                  onChange={(e) => setEstimatePoints(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full h-9 px-3 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                <Select
+                  value={estimatePoints ? String(estimatePoints) : 'none'}
+                  onValueChange={(val) => setEstimatePoints(val === 'none' ? null : Number(val))}
                 >
-                  <option value="">No estimate</option>
-                  <option value="1">1 point (Quick fix)</option>
-                  <option value="2">2 points (Minor)</option>
-                  <option value="3">3 points (Standard)</option>
-                  <option value="5">5 points (Complex)</option>
-                  <option value="8">8 points (Epic sub-track)</option>
-                  <option value="13">13 points (Major architectural shift)</option>
-                </select>
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium">
+                    <SelectValue placeholder="Story Points">
+                      {(val) => {
+                        if (!val || val === 'none') return 'No estimate'
+                        return `${val} points`
+                      }}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectPopup>
+                    <SelectItem value="none" className="text-xs">No estimate</SelectItem>
+                    <SelectItem value="1" className="text-xs">1 point (Quick fix)</SelectItem>
+                    <SelectItem value="2" className="text-xs">2 points (Minor)</SelectItem>
+                    <SelectItem value="3" className="text-xs">3 points (Standard)</SelectItem>
+                    <SelectItem value="5" className="text-xs">5 points (Complex)</SelectItem>
+                    <SelectItem value="8" className="text-xs">8 points (Epic sub-track)</SelectItem>
+                    <SelectItem value="13" className="text-xs">13 points (Major architectural shift)</SelectItem>
+                  </SelectPopup>
+                </Select>
               </div>
             </div>
 

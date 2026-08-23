@@ -1,0 +1,310 @@
+{
+  "/Volumes/Acasis2TB/playground/task-management/drizzle.config.ts": {
+    "mtime": 1787296489.0,
+    "hash": "6d93b3f346490390cbf6847d819241ad"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/vite.config.ts": {
+    "mtime": 1787306197.0,
+    "hash": "df1d894e14762c0410bacfd7f9e322f3"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/router.tsx": {
+    "mtime": 1787308851.0,
+    "hash": "0d9d34f82f2dc6457e14ab4a807a02b5"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routeTree.gen.ts": {
+    "mtime": 1787311915.0,
+    "hash": "77fbbcc009c83033e4f31fe20c78181d"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ErrorViews.tsx": {
+    "mtime": 1787308837.0,
+    "hash": "a3743e936d0ce4ba36c77a960f064af4"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/Footer.tsx": {
+    "mtime": 1787290118.0,
+    "hash": "78b42f434bbd71682bb7f187b40e3ee1"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/Header.tsx": {
+    "mtime": 1787290118.0,
+    "hash": "75d62a4d041251140de7c46c8f4d411b"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ThemeToggle.tsx": {
+    "mtime": 1787290118.0,
+    "hash": "441a6325341b0934782b64448e8b7dbc"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/analytics/AnalyticsView.tsx": {
+    "mtime": 1787310757.0,
+    "hash": "b2f1801b078f5826455f6c531b1e7f77"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/dashboard/BatchActionBar.tsx": {
+    "mtime": 1787309959.0,
+    "hash": "4dc207ceb7be8ff59a7c62f4ddb327b0"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/dashboard/DashboardFilters.tsx": {
+    "mtime": 1787307590.0,
+    "hash": "7ec0261c4feb49d126466038378de848"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/dashboard/DashboardHeader.tsx": {
+    "mtime": 1787305370.0,
+    "hash": "b8ea87e97e18c6df29e21f4e23e4cc06"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/dashboard/DeleteConfirmDialog.tsx": {
+    "mtime": 1787305306.0,
+    "hash": "dbc801cb31f1e81f5bb58cf6067f6f45"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/dashboard/ItemDetailDrawer.tsx": {
+    "mtime": 1787305383.0,
+    "hash": "99dd4391e03f99041adce498eb185679"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/dashboard/ItemKanbanView.tsx": {
+    "mtime": 1787310794.0,
+    "hash": "da6f0d28c94d5bf02788685bb3ca12b9"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/dashboard/ItemModal.tsx": {
+    "mtime": 1787310082.0,
+    "hash": "9366fa0b91f9bf41342bb3a4d7b7dc9a"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/dashboard/ItemTableView.tsx": {
+    "mtime": 1787307335.0,
+    "hash": "1cb4814460097ed49fe301e95ce4189c"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/dashboard/StatsOverview.tsx": {
+    "mtime": 1787310736.0,
+    "hash": "ef18600070f21e4476ac43d731a53a48"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/dashboard/types.ts": {
+    "mtime": 1787310723.0,
+    "hash": "d503a6bc1a63fc7dda381be313f88674"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/layout/DashboardLayout.tsx": {
+    "mtime": 1787311926.0,
+    "hash": "f12723fed9af20f440c96f0397fe75f1"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/projects/ProjectCard.tsx": {
+    "mtime": 1787312557.0,
+    "hash": "fc4c2fdb0c58e2a185c82f00ee8626a7"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/projects/ProjectModal.tsx": {
+    "mtime": 1787313063.0,
+    "hash": "aa63cd4e26a87c8c778f94fd05b449b1"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/settings/SettingsView.tsx": {
+    "mtime": 1787310809.0,
+    "hash": "44e788e5cdd523fea90644c9fcbec3b1"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/tasks/TaskDetailDrawer.tsx": {
+    "mtime": 1787312274.0,
+    "hash": "23baf250c4082ca1b02c621aae82d085"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/tasks/TaskKanbanView.tsx": {
+    "mtime": 1787312289.0,
+    "hash": "828e05aa545858e22b3da6444dd57801"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/tasks/TaskModal.tsx": {
+    "mtime": 1787313091.0,
+    "hash": "66ea129862867bfc5e24c05ae5695f6c"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/tasks/TaskTableView.tsx": {
+    "mtime": 1787312295.0,
+    "hash": "0b31d60bcd92921e5dd36f81d79dccbd"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/tasks/types.ts": {
+    "mtime": 1787312265.0,
+    "hash": "d75d401b015d46cb6d8ccea674b0a9b9"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/alert-dialog.tsx": {
+    "mtime": 1787306853.0,
+    "hash": "fc73f2d814c560be92caad2c351a6782"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/avatar.tsx": {
+    "mtime": 1787303833.0,
+    "hash": "876143012bee87d850d17830d37a97a9"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/badge.tsx": {
+    "mtime": 1787292423.0,
+    "hash": "e4ec840217040d5630ee6ed7213a1d72"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/button.tsx": {
+    "mtime": 1787303806.0,
+    "hash": "ed4538375fa67eecbdfe6053cd9b8054"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/card.tsx": {
+    "mtime": 1787292422.0,
+    "hash": "baac5330eb05de0cb1da0786f542ba9a"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/checkbox.tsx": {
+    "mtime": 1787292423.0,
+    "hash": "b344f8b576b94a06ff0f8ad10a10b47f"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/dialog.tsx": {
+    "mtime": 1787310498.0,
+    "hash": "05a44edce02912e927d3206e03047241"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/input.tsx": {
+    "mtime": 1787292422.0,
+    "hash": "0607b02d99a2e92f9509223f36ccc6ec"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/menu.tsx": {
+    "mtime": 1787310036.0,
+    "hash": "b88dee86c7ac163d29ab927d15324f7c"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/progress.tsx": {
+    "mtime": 1787303801.0,
+    "hash": "167b3c918719608536e698dd8167e0d7"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/scroll-area.tsx": {
+    "mtime": 1787303801.0,
+    "hash": "d4c00a4ecae7ee92af8a47eff8aad618"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/select.tsx": {
+    "mtime": 1787310056.0,
+    "hash": "d895d3893cea7d32ee211610ae9622a3"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/spinner.tsx": {
+    "mtime": 1787303801.0,
+    "hash": "be5a6ee43db8d71d89b23bae7879e067"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/tabs.tsx": {
+    "mtime": 1787303806.0,
+    "hash": "d4e39e5c400c46cb3d36f536efaae665"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/textarea.tsx": {
+    "mtime": 1787303800.0,
+    "hash": "ef0aa516a9cef30ae61724991cb7682b"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/tooltip.tsx": {
+    "mtime": 1787303833.0,
+    "hash": "cdb607dda1e327ebcb8058e2a0d0a9e6"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/ui/transitions.tsx": {
+    "mtime": 1787310088.0,
+    "hash": "7e79e84b5ac925fb8465c7de5d68fa7b"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/users/DeleteUserDialog.tsx": {
+    "mtime": 1787308505.0,
+    "hash": "1b05d30ebd093e698af626d4aeab9138"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/users/types.ts": {
+    "mtime": 1787308509.0,
+    "hash": "f2590f8ac6ebfd05dcae485e8e6e400b"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/users/UserModal.tsx": {
+    "mtime": 1787309985.0,
+    "hash": "c4f6bc3a0bee25e15b37930e65a46023"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/users/UsersFilters.tsx": {
+    "mtime": 1787308514.0,
+    "hash": "3a9ffc02692c92f17a0a37f5c2f00002"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/users/UsersStatsOverview.tsx": {
+    "mtime": 1787310748.0,
+    "hash": "7e6734aceab3ff3282156797bb79abb8"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/components/users/UsersTableView.tsx": {
+    "mtime": 1787308520.0,
+    "hash": "5c960660bf291f046c8249821230722e"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/db/index.ts": {
+    "mtime": 1787310984.0,
+    "hash": "52ce8356713ab4d55b21bfda38fcd508"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/db/schema.ts": {
+    "mtime": 1787310974.0,
+    "hash": "3597508dcf068e6f28cfd1bdeba69e04"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/lib/auth-context.tsx": {
+    "mtime": 1787308666.0,
+    "hash": "6d62bf9a5d7b44c05545d58ec1f653e7"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/lib/segmented-control.ts": {
+    "mtime": 1787303801.0,
+    "hash": "5230af24ff5bbd6ba17a9712ce127fe5"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/lib/utils.ts": {
+    "mtime": 1787292368.0,
+    "hash": "5a6fd53fdcf2be529e9cc0b718fde352"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/about.tsx": {
+    "mtime": 1787290118.0,
+    "hash": "7a73136fb01eb90f092d0b125b61704d"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/login.tsx": {
+    "mtime": 1787310775.0,
+    "hash": "04af35ac3804d70327d9c3ed14b85411"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/_authenticated.tsx": {
+    "mtime": 1787308673.0,
+    "hash": "b5b779a856e7fa77347825083190105c"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/__root.tsx": {
+    "mtime": 1787308843.0,
+    "hash": "fb1ccbb1caa3b26b3740b7dd4bd173eb"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/_authenticated/analytics.tsx": {
+    "mtime": 1787308105.0,
+    "hash": "a8f86f55df32aa5d70875cb8fb3c2895"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/_authenticated/index.tsx": {
+    "mtime": 1787312316.0,
+    "hash": "f3019ca3b02b225a07e77cb0db774b37"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/_authenticated/projects.$projectId.tsx": {
+    "mtime": 1787313125.0,
+    "hash": "99816dd3f7c82d8979250cc9fa2952e1"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/_authenticated/projects.tsx": {
+    "mtime": 1787313111.0,
+    "hash": "8a218a07fa71e2bce58bf0e22e939142"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/_authenticated/settings.tsx": {
+    "mtime": 1787308108.0,
+    "hash": "8e798d236c2fb993672b15e373ec8743"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/_authenticated/tasks.tsx": {
+    "mtime": 1787313141.0,
+    "hash": "e672981fe5d4792ed16c20043aa02d7e"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/routes/_authenticated/users.tsx": {
+    "mtime": 1787309942.0,
+    "hash": "2520a2976701b45256f6f516fa4f431b"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/server/auth.ts": {
+    "mtime": 1787309005.0,
+    "hash": "b7e23d1460135f2ecfeed8562bc57dd9"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/server/crypto.ts": {
+    "mtime": 1787308239.0,
+    "hash": "112ce6c197336897b958606f580cf450"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/server/items.ts": {
+    "mtime": 1787303537.0,
+    "hash": "4c010819013466053ffb2fe9078ea8e3"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/server/projects.ts": {
+    "mtime": 1787312253.0,
+    "hash": "ef094de1a1b9ce00ae173a1d4added62"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/server/tasks.ts": {
+    "mtime": 1787312258.0,
+    "hash": "f73d690418d82c0ddce00cbe2790a97b"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/src/server/users.ts": {
+    "mtime": 1787309013.0,
+    "hash": "7df2483e4953e8f3145471343b5be43b"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/AGENTS.md": {
+    "mtime": 1787290142.0,
+    "hash": "9646a4fc03596bc8f4a9409430666a55"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/pnpm-workspace.yaml": {
+    "mtime": 1787290118.0,
+    "hash": "c151c088520029bda37644b83b00765c"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/README.md": {
+    "mtime": 1787301906.0,
+    "hash": "6b4c7977c86a1797d0da3c1bdd9e4391"
+  },
+  "/Volumes/Acasis2TB/playground/task-management/docs/TURSO_GUIDE.md": {
+    "mtime": 1787301885.0,
+    "hash": "bbd74f4fab86c07445cf25d9049990eb"
+  }
+}

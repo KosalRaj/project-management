@@ -5,25 +5,25 @@
       "source": "cosscom/coss",
       "sourceType": "github",
       "skillPath": "apps/ui/skills/coss/SKILL.md",
-      "computedHash": "4b6bc23cfc2ad9dcf608bf4e9d2157eaf70dcdf673c99cf4d1555c94f30c0f77"
+      "computedHash": "064a11fe3bc909430830e0ab1ee9dd3a363c48b4b7df909c6b364e5e76ef2363"
     },
     "coss-particles": {
       "source": "cosscom/coss",
       "sourceType": "github",
       "skillPath": "apps/ui/skills/coss-particles/SKILL.md",
-      "computedHash": "fd04aeb6c61c0f3271bc124d63d40b21594cb694178df49575d309cec2a4eda5"
+      "computedHash": "a3448e835713342e4625d1f97a38265fea03cf840723ad23eeef0b53dcc21609"
     },
     "transitions-dev": {
       "source": "jakubantalik/transitions-dev",
       "sourceType": "github",
       "skillPath": "skills/transitions-dev/SKILL.md",
-      "computedHash": "c4dd7001f07f4b95219d9116854f506118af4877b16bb5bed22a03381622a22e"
+      "computedHash": "68aa43bb832ef2e85128e506cf78ebe6a19a38b3e01046d163202bbdd61b5ef0"
     },
     "transitions-polish": {
       "source": "jakubantalik/transitions.dev",
       "sourceType": "github",
       "skillPath": "skills/transitions-polish/SKILL.md",
-      "computedHash": "f1dd8e76b5fb275447b5dcd2e24dcd8f9bcda7b93361163754ccdff957e30509"
+      "computedHash": "95aec18ac2c9fb2c545c2bf2e7419a8001b8e7f1fb640cdb89db0a543548d27f"
     }
   }
 }
