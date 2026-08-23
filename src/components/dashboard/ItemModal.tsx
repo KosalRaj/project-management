@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import type { Item, ItemCategory, ItemPriority, ItemStatus } from '@/db/schema'
 import { useShakeError } from '@/components/ui/transitions'
+import { safeJsonParseArray } from '@/lib/utils'
 import { AVATAR_PRESETS } from './types'
 import { Calendar, User, DollarSign, Tag } from 'lucide-react'
 
@@ -103,12 +104,8 @@ export function ItemModal({
       setDueDate(item.dueDate || '')
       setProgress(item.progress ?? 0)
       setBudget(item.budget ?? 0)
-      try {
-        const parsedTags = JSON.parse(item.tags || '[]')
-        setTagsString(Array.isArray(parsedTags) ? parsedTags.join(', ') : '')
-      } catch {
-        setTagsString('')
-      }
+      const parsedTags = safeJsonParseArray<string>(item.tags, [])
+      setTagsString(parsedTags.join(', '))
     } else if (item && !item.id) {
       // Pre-filled status
       setTitle('')

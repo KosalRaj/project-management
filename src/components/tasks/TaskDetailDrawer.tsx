@@ -15,12 +15,13 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Spinner } from '@/components/ui/spinner'
-import type { Task, TaskStatus, TaskPriority, TaskType, SubtaskItem, CommentItem, SafeUser } from '@/db/schema'
+import type { Task, TaskStatus, TaskPriority, TaskType, SubtaskItem, CommentItem, SafeUser, AttachmentItem } from '@/db/schema'
 import {
   TASK_STATUS_CONFIG,
   TASK_PRIORITY_CONFIG,
   TASK_TYPE_CONFIG,
 } from './types'
+import { safeJsonParseArray } from '@/lib/utils'
 import {
   Calendar,
   Tag,
@@ -31,6 +32,9 @@ import {
   MessageSquare,
   ListTodo,
   Zap,
+  Paperclip,
+  FileText,
+  ExternalLink,
 } from 'lucide-react'
 
 interface TaskDetailDrawerProps {
@@ -66,28 +70,16 @@ export function TaskDetailDrawer({
   const PriorityIcon = priorityCfg.icon
   const TypeIcon = typeCfg.icon
 
-  let subtasks: SubtaskItem[] = []
-  try {
-    subtasks = JSON.parse(task.subtasks || '[]')
-  } catch {
-    subtasks = []
-  }
+  const subtasks = safeJsonParseArray<SubtaskItem>(task.subtasks, [])
+  const comments = safeJsonParseArray<CommentItem>(task.comments, [])
+  const labels = safeJsonParseArray<string>(task.labels, [])
+  const attachments = safeJsonParseArray<AttachmentItem>(task.attachments, [])
 
-  let comments: CommentItem[] = []
-  try {
-    comments = JSON.parse(task.comments || '[]')
-  } catch {
-    comments = []
-  }
+  const [newAttachmentName, setNewAttachmentName] = useState('')
+  const [newAttachmentUrl, setNewAttachmentUrl] = useState('')
+  const [isAddingLink, setIsAddingLink] = useState(false)
 
-  let labels: string[] = []
-  try {
-    labels = JSON.parse(task.labels || '[]')
-  } catch {
-    labels = []
-  }
-
-  const completedSubtasks = subtasks.filter((s) => s.completed).length
+  const completedSubtasks = subtasks.filter((s) => s?.completed).length
   const subtaskProgress = subtasks.length > 0 ? Math.round((completedSubtasks / subtasks.length) * 100) : 0
 
   const handleToggleSubtask = async (subtaskId: string) => {
@@ -112,6 +104,49 @@ export function TaskDetailDrawer({
   const handleDeleteSubtask = async (subtaskId: string) => {
     const updated = subtasks.filter((s) => s.id !== subtaskId)
     await onUpdateTask({ id: task.id, subtasks: JSON.stringify(updated) as any })
+  }
+
+  const handleAddAttachmentFile = async () => {
+    const sampleFiles = [
+      { name: 'Architecture_Spec_v2.pdf', size: '2.4 MB', type: 'document', url: '#' },
+      { name: 'Wireframe_Mockups_Final.fig', size: '8.1 MB', type: 'link', url: 'https://figma.com' },
+      { name: 'Telemetry_Benchmark_Logs.json', size: '420 KB', type: 'code', url: '#' },
+    ]
+    const chosen = sampleFiles[attachments.length % sampleFiles.length]
+    const newAtt: AttachmentItem = {
+      id: crypto.randomUUID(),
+      name: chosen.name,
+      size: chosen.size,
+      type: chosen.type,
+      url: chosen.url,
+      uploadedAt: new Date().toISOString(),
+    }
+    const updated = [...attachments, newAtt]
+    await onUpdateTask({ id: task.id, attachments: JSON.stringify(updated) as any })
+  }
+
+  const handleAddLinkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newAttachmentName.trim() || !newAttachmentUrl.trim()) return
+
+    const newAtt: AttachmentItem = {
+      id: crypto.randomUUID(),
+      name: newAttachmentName.trim(),
+      size: 'External Link',
+      type: 'link',
+      url: newAttachmentUrl.trim(),
+      uploadedAt: new Date().toISOString(),
+    }
+    const updated = [...attachments, newAtt]
+    setNewAttachmentName('')
+    setNewAttachmentUrl('')
+    setIsAddingLink(false)
+    await onUpdateTask({ id: task.id, attachments: JSON.stringify(updated) as any })
+  }
+
+  const handleDeleteAttachment = async (attId: string) => {
+    const updated = attachments.filter((a) => a.id !== attId)
+    await onUpdateTask({ id: task.id, attachments: JSON.stringify(updated) as any })
   }
 
   const handleAddLabel = async (e: React.FormEvent) => {
@@ -261,6 +296,111 @@ export function TaskDetailDrawer({
                     <Plus className="size-3" /> Add
                   </Button>
                 </form>
+              </div>
+
+              {/* Attachments & Resource Links */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Paperclip className="size-3.5" />
+                    Attachments & Links ({attachments.length})
+                  </h4>
+
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      type="button"
+                      onClick={handleAddAttachmentFile}
+                      className="gap-1 h-7 text-[11px]"
+                    >
+                      <Plus className="size-3" /> Attach File
+                    </Button>
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      type="button"
+                      onClick={() => setIsAddingLink((prev) => !prev)}
+                      className="gap-1 h-7 text-[11px]"
+                    >
+                      <ExternalLink className="size-3" /> Add Link
+                    </Button>
+                  </div>
+                </div>
+
+                {isAddingLink && (
+                  <form onSubmit={handleAddLinkSubmit} className="p-3 rounded-xl border border-border/70 bg-card space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <Input
+                        value={newAttachmentName}
+                        onChange={(e) => setNewAttachmentName(e.target.value)}
+                        placeholder="Link title (e.g. Figma Spec)"
+                        className="h-8 text-xs bg-background"
+                        required
+                      />
+                      <Input
+                        value={newAttachmentUrl}
+                        onChange={(e) => setNewAttachmentUrl(e.target.value)}
+                        placeholder="https://..."
+                        className="h-8 text-xs bg-background"
+                        required
+                      />
+                    </div>
+                    <div className="flex justify-end gap-1.5">
+                      <Button size="xs" variant="ghost" type="button" onClick={() => setIsAddingLink(false)}>
+                        Cancel
+                      </Button>
+                      <Button size="xs" type="submit">
+                        Save Link
+                      </Button>
+                    </div>
+                  </form>
+                )}
+
+                <div className="space-y-1.5">
+                  {attachments.length === 0 ? (
+                    <div
+                      onClick={handleAddAttachmentFile}
+                      className="p-4 rounded-xl border border-dashed border-border/70 bg-muted/20 text-center text-xs text-muted-foreground hover:bg-muted/40 transition-colors cursor-pointer space-y-1"
+                    >
+                      <Paperclip className="size-4 mx-auto text-muted-foreground/60" />
+                      <p className="font-semibold text-foreground">No files or links attached</p>
+                      <p className="text-[10px]">Click to upload design specs, PDFs, logs or add URLs.</p>
+                    </div>
+                  ) : (
+                    attachments.map((att) => (
+                      <div
+                        key={att.id}
+                        className="group flex items-center justify-between gap-3 p-2.5 rounded-xl border border-border/50 bg-card/60 hover:bg-card transition-colors"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="flex size-7 items-center justify-center rounded-lg bg-muted border border-border/60 text-primary shrink-0">
+                            {att.type === 'link' ? <ExternalLink className="size-3.5" /> : <FileText className="size-3.5" />}
+                          </div>
+                          <div className="min-w-0">
+                            <a
+                              href={att.url || '#'}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs font-semibold text-foreground hover:text-primary transition-colors block truncate hover:underline"
+                            >
+                              {att.name}
+                            </a>
+                            <span className="text-[10px] text-muted-foreground">{att.size}</span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAttachment(att.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition-opacity cursor-pointer"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
               {/* Discussion & Activity Thread */}

@@ -14,6 +14,7 @@ import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import type { Item, ItemCategory, ItemPriority, ItemStatus } from '@/db/schema'
 import { CATEGORY_CONFIG, PRIORITY_CONFIG, STATUS_CONFIG } from './types'
+import { safeJsonParseArray } from '@/lib/utils'
 import {
   Calendar,
   Clock,
@@ -51,12 +52,7 @@ export function ItemDetailDrawer({
   const priorityCfg = PRIORITY_CONFIG[(item.priority as ItemPriority) || 'medium'] || PRIORITY_CONFIG.medium
   const categoryCfg = CATEGORY_CONFIG[(item.category as ItemCategory) || 'engineering'] || CATEGORY_CONFIG.engineering
 
-  let tags: string[] = []
-  try {
-    tags = JSON.parse(item.tags || '[]')
-  } catch {
-    tags = []
-  }
+  const tags = safeJsonParseArray<string>(item.tags, [])
 
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date() && item.status !== 'completed'
 

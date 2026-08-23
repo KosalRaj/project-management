@@ -174,15 +174,34 @@ body::after {
   mask-image: radial-gradient(circle at 50% 30%, black, transparent 78%);
 }
 
-a {
+a:not([class]) {
   color: var(--lagoon-deep);
   text-decoration-color: rgba(50, 143, 151, 0.4);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 
-a:hover {
+a:not([class]):hover {
   color: #246f76;
+}
+
+button,
+[role="button"],
+[role="menuitem"],
+[role="option"],
+[role="tab"],
+[role="checkbox"],
+[role="radio"],
+[data-slot="select-trigger"],
+[data-slot="select-item"],
+[data-slot="menu-item"],
+[data-slot="checkbox"],
+[data-slot="radio"],
+[data-slot="dialog-close"],
+input[type="checkbox"],
+input[type="radio"],
+select {
+  cursor: pointer;
 }
 
 code {

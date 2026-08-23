@@ -1,7 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
 import { db, ensureTablesExist } from '@/db'
-import { projects, tasks, type Project, type ProjectStatus, type ProjectHealth } from '@/db/schema'
+import { projects, tasks, items, type Project, type ProjectStatus, type ProjectHealth } from '@/db/schema'
+import { seedDemoDataFn } from './items'
 import { eq, desc } from 'drizzle-orm'
+import { requireAuthUser } from './auth-helpers'
 
 export interface ProjectWithStats extends Project {
   totalTasks: number
@@ -13,7 +15,6 @@ export interface ProjectWithStats extends Project {
 // 1. Get all projects with aggregated task metrics
 export const getProjectsFn = createServerFn({ method: 'GET' }).handler(async (): Promise<ProjectWithStats[]> => {
   await ensureTablesExist()
-  await seedProjectsAndTasksIfEmpty()
 
   const allProjects = await db.select().from(projects).orderBy(desc(projects.createdAt))
   const allTasks = await db.select().from(tasks)
@@ -153,11 +154,13 @@ export const updateProjectFn = createServerFn({ method: 'POST' })
     return updated
   })
 
-// 5. Delete project
+// 5. Delete project (Admin only)
 export const deleteProjectFn = createServerFn({ method: 'POST' })
-  .validator((data: { id: string }) => data)
+  .validator((data: { token?: string; id: string }) => data)
   .handler(async ({ data }) => {
     await ensureTablesExist()
+    await requireAuthUser(data.token, ['admin'])
+
     await db.delete(tasks).where(eq(tasks.projectId, data.id))
     await db.delete(projects).where(eq(projects.id, data.id))
     return { success: true }
@@ -422,3 +425,24 @@ async function seedProjectsAndTasksIfEmpty() {
     },
   ])
 }
+
+// 8. Reset and re-seed sample workspace (Admin only)
+export const resetAndSeedWorkspaceFn = createServerFn({ method: 'POST' })
+  .validator((data?: { token?: string }) => data)
+  .handler(async ({ data }) => {
+    await ensureTablesExist()
+    await requireAuthUser(data?.token, ['admin'])
+
+    // Clean existing tasks, projects, items
+    await db.delete(tasks)
+    await db.delete(projects)
+    await db.delete(items)
+
+    // Seed sample items
+    await seedDemoDataFn()
+    // Seed sample projects and tasks
+    await seedProjectsAndTasksIfEmpty()
+
+    return { success: true }
+  })
+

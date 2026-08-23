@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select'
 import type { Item, ItemCategory, ItemPriority, ItemStatus } from '@/db/schema'
 import { CATEGORY_CONFIG, PRIORITY_CONFIG, STATUS_CONFIG } from './types'
+import { safeJsonParseArray } from '@/lib/utils'
 
 const STATUS_OPTIONS: { label: string; value: ItemStatus; dot: string }[] = [
   { label: 'Backlog', value: 'backlog', dot: 'bg-slate-500' },
@@ -135,12 +136,7 @@ export function ItemTableView({
                 const priorityCfg = PRIORITY_CONFIG[(item.priority as ItemPriority) || 'medium'] || PRIORITY_CONFIG.medium
                 const categoryCfg = CATEGORY_CONFIG[(item.category as ItemCategory) || 'engineering'] || CATEGORY_CONFIG.engineering
                 
-                let tags: string[] = []
-                try {
-                  tags = JSON.parse(item.tags || '[]')
-                } catch {
-                  tags = []
-                }
+                const tags = safeJsonParseArray<string>(item.tags, [])
 
                 const isOverdue = item.dueDate && new Date(item.dueDate) < new Date() && item.status !== 'completed'
 

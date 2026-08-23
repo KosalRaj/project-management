@@ -116,9 +116,44 @@ export async function ensureTablesExist() {
           labels TEXT NOT NULL DEFAULT '[]',
           subtasks TEXT NOT NULL DEFAULT '[]',
           comments TEXT NOT NULL DEFAULT '[]',
+          attachments TEXT NOT NULL DEFAULT '[]',
           sort_order INTEGER NOT NULL DEFAULT 0,
           created_at TEXT,
           updated_at TEXT
+        );
+      `)
+
+      // Gracefully ensure attachments column exists if table was already created
+      try {
+        await client.execute(`ALTER TABLE tasks ADD COLUMN attachments TEXT NOT NULL DEFAULT '[]';`)
+      } catch (_) {}
+
+      await client.execute(`
+        CREATE TABLE IF NOT EXISTS notifications (
+          id TEXT PRIMARY KEY,
+          user_id TEXT,
+          title TEXT NOT NULL,
+          message TEXT NOT NULL,
+          type TEXT NOT NULL DEFAULT 'task_assigned',
+          entity_type TEXT,
+          entity_id TEXT,
+          read INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT
+        );
+      `)
+
+      await client.execute(`
+        CREATE TABLE IF NOT EXISTS activity_logs (
+          id TEXT PRIMARY KEY,
+          user_id TEXT,
+          user_name TEXT NOT NULL,
+          user_avatar TEXT,
+          action TEXT NOT NULL,
+          entity_type TEXT NOT NULL,
+          entity_id TEXT NOT NULL,
+          entity_title TEXT NOT NULL,
+          details TEXT,
+          created_at TEXT
         );
       `)
     } catch (err) {

@@ -9,7 +9,7 @@ import {
   resetUserPasswordFn,
 } from '@/server/users'
 import type { SafeUser, UserStatus } from '@/db/schema'
-import { useAuth } from '@/lib/auth-context'
+import { usePermissions } from '@/lib/use-permissions'
 import { UsersStatsOverview } from '@/components/users/UsersStatsOverview'
 import { UsersFilters } from '@/components/users/UsersFilters'
 import { UsersTableView } from '@/components/users/UsersTableView'
@@ -32,7 +32,7 @@ export const Route = createFileRoute('/_authenticated/users')({
 function UsersPage() {
   const users = Route.useLoaderData()
   const router = useRouter()
-  const { user: currentUser } = useAuth()
+  const { user: currentUser, token, isAdmin } = usePermissions()
   const [, startTransition] = useTransition()
 
   // Filter state
@@ -125,35 +125,49 @@ function UsersPage() {
   }
 
   const handleCreateUser = async (data: any) => {
-    await createUserFn({ data })
-    startTransition(() => {
-      router.invalidate()
-    })
-    showToast(`Created user account for ${data.name}`)
+    try {
+      await createUserFn({ data: { ...data, token: token || undefined } })
+      startTransition(() => {
+        router.invalidate()
+      })
+      showToast(`Created user account for ${data.name}`)
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to create user', 'error')
+      throw err
+    }
   }
 
   const handleUpdateUser = async (data: any) => {
-    await updateUserFn({ data })
-    startTransition(() => {
-      router.invalidate()
-    })
-    showToast(`Updated profile for ${data.name}`)
+    try {
+      await updateUserFn({ data: { ...data, token: token || undefined } })
+      startTransition(() => {
+        router.invalidate()
+      })
+      showToast(`Updated profile for ${data.name}`)
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to update user', 'error')
+      throw err
+    }
   }
 
   const handleToggleStatus = async (id: string, status: UserStatus) => {
     const targetUser = users.find((u) => u.id === id)
-    await toggleUserStatusFn({ data: { id, status } })
-    startTransition(() => {
-      router.invalidate()
-    })
-    showToast(`Set ${targetUser?.name || 'user'} to ${status}`)
+    try {
+      await toggleUserStatusFn({ data: { id, status, token: token || undefined } })
+      startTransition(() => {
+        router.invalidate()
+      })
+      showToast(`Set ${targetUser?.name || 'user'} to ${status}`)
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to update status', 'error')
+    }
   }
 
   const handleDeleteUser = async () => {
     if (!userToDelete) return
     setIsDeleting(true)
     try {
-      await deleteUserFn({ data: { id: userToDelete.id } })
+      await deleteUserFn({ data: { id: userToDelete.id, token: token || undefined } })
       startTransition(() => {
         router.invalidate()
       })
@@ -176,7 +190,7 @@ function UsersPage() {
     }
 
     try {
-      await resetUserPasswordFn({ data: { id: user.id, newPassword: newPass } })
+      await resetUserPasswordFn({ data: { id: user.id, newPassword: newPass, token: token || undefined } })
       showToast(`Password for ${user.name} has been reset successfully`)
     } catch (err: any) {
       showToast(err?.message || 'Failed to reset password', 'error')
@@ -187,7 +201,7 @@ function UsersPage() {
     <div className="space-y-6">
       {/* Toast Notification */}
       {notification && (
-        <div className="fixed top-6 right-6 z-50 animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="fixed top-6 right-6 z-50 animate-in fade-in slide-from-top-4 duration-200">
           <div
             className={`flex items-center gap-2.5 rounded-2xl border p-3.5 shadow-2xl text-xs font-medium backdrop-blur-xl ${
               notification.type === 'error'
@@ -217,16 +231,18 @@ function UsersPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="gap-1.5 shadow-md shadow-primary/20"
-          >
-            <UserPlus className="size-4" />
-            Add Member
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="gap-1.5 shadow-md shadow-primary/20 cursor-pointer"
+            >
+              <UserPlus className="size-4" />
+              Add Member
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Metric Cards */}
@@ -260,12 +276,15 @@ function UsersPage() {
         onToggleStatus={handleToggleStatus}
         onResetPassword={handleResetPassword}
         currentUserId={currentUser?.id}
+        isAdmin={isAdmin}
       />
 
       {/* Create User Modal */}
       <UserModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
+        canChangeRole={isAdmin}
+        canChangeStatus={isAdmin}
         onSubmit={handleCreateUser}
       />
 
@@ -274,6 +293,8 @@ function UsersPage() {
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         user={selectedUserForEdit}
+        canChangeRole={isAdmin}
+        canChangeStatus={isAdmin}
         onSubmit={handleUpdateUser}
       />
 

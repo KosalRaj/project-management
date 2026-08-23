@@ -78,9 +78,35 @@ export const tasks = sqliteTable('tasks', {
   labels: text('labels').notNull().default('[]'),
   subtasks: text('subtasks').notNull().default('[]'), // JSON array of SubtaskItem
   comments: text('comments').notNull().default('[]'), // JSON array of CommentItem
+  attachments: text('attachments').notNull().default('[]'), // JSON array of AttachmentItem
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: text('created_at').$defaultFn(() => new Date().toISOString()),
   updatedAt: text('updated_at').$defaultFn(() => new Date().toISOString()),
+})
+
+export const notifications = sqliteTable('notifications', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id'),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  type: text('type').notNull().default('task_assigned'), // 'task_assigned' | 'status_changed' | 'mention' | 'health_alert' | 'system'
+  entityType: text('entity_type'), // 'task' | 'project' | 'item'
+  entityId: text('entity_id'),
+  read: integer('read', { mode: 'boolean' }).notNull().default(false),
+  createdAt: text('created_at').$defaultFn(() => new Date().toISOString()),
+})
+
+export const activityLogs = sqliteTable('activity_logs', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id'),
+  userName: text('user_name').notNull(),
+  userAvatar: text('user_avatar'),
+  action: text('action').notNull(), // 'created' | 'updated_status' | 'commented' | 'assigned' | 'deleted'
+  entityType: text('entity_type').notNull(), // 'task' | 'project' | 'user'
+  entityId: text('entity_id').notNull(),
+  entityTitle: text('entity_title').notNull(),
+  details: text('details'),
+  createdAt: text('created_at').$defaultFn(() => new Date().toISOString()),
 })
 
 export type Item = typeof items.$inferSelect
@@ -110,6 +136,13 @@ export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'in_review' | 'don
 export type TaskPriority = 'urgent' | 'high' | 'medium' | 'low' | 'none'
 export type TaskType = 'feature' | 'bug' | 'task' | 'improvement'
 
+export type Notification = typeof notifications.$inferSelect
+export type NewNotification = typeof notifications.$inferInsert
+export type NotificationType = 'task_assigned' | 'status_changed' | 'mention' | 'health_alert' | 'system'
+
+export type ActivityLog = typeof activityLogs.$inferSelect
+export type NewActivityLog = typeof activityLogs.$inferInsert
+
 export interface SubtaskItem {
   id: string
   title: string
@@ -123,4 +156,13 @@ export interface CommentItem {
   authorAvatar?: string
   content: string
   createdAt: string
+}
+
+export interface AttachmentItem {
+  id: string
+  name: string
+  size: string
+  type: string // 'image' | 'document' | 'code' | 'link'
+  url: string
+  uploadedAt: string
 }

@@ -26,7 +26,20 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { SuccessCheckIcon } from '@/components/ui/transitions'
-import type { Task, TaskStatus } from '@/db/schema'
+import { exportTasksToCsv, exportTasksToJson } from '@/lib/export-utils'
+import {
+  Menu,
+  MenuTrigger,
+  MenuPopup,
+  MenuItem,
+} from '@/components/ui/menu'
+import { cn } from '@/lib/utils'
+import type { Task, TaskStatus, TaskPriority, TaskType } from '@/db/schema'
+import {
+  TASK_STATUS_CONFIG,
+  TASK_PRIORITY_CONFIG,
+  TASK_TYPE_CONFIG,
+} from '@/components/tasks/types'
 import {
   CheckSquare,
   LayoutGrid,
@@ -34,6 +47,10 @@ import {
   Plus,
   Search,
   Trash2,
+  X,
+  Download,
+  FileSpreadsheet,
+  FileCode,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/_authenticated/tasks')({
@@ -293,6 +310,36 @@ function TasksPage() {
             </button>
           </div>
 
+          {/* Export Dropdown */}
+          <Menu>
+            <MenuTrigger className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-border/70 bg-card hover:bg-muted text-xs font-semibold text-foreground transition-colors cursor-pointer shadow-2xs">
+              <Download className="size-3.5 text-muted-foreground" />
+              <span>Export</span>
+            </MenuTrigger>
+            <MenuPopup align="end" className="w-48">
+              <MenuItem
+                onClick={() => {
+                  exportTasksToCsv(filteredTasks, projects)
+                  showToast('Exported tasks to CSV', 'success')
+                }}
+                className="gap-2 text-xs"
+              >
+                <FileSpreadsheet className="size-3.5 text-emerald-500" />
+                Export to CSV
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  exportTasksToJson(filteredTasks)
+                  showToast('Exported tasks to JSON backup', 'success')
+                }}
+                className="gap-2 text-xs"
+              >
+                <FileCode className="size-3.5 text-sky-500" />
+                Export to JSON Backup
+              </MenuItem>
+            </MenuPopup>
+          </Menu>
+
           <Button
             onClick={() => {
               setCreateTaskDefaultStatus('todo')
@@ -310,11 +357,12 @@ function TasksPage() {
         <button
           type="button"
           onClick={() => setActiveQuickFilter('all')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+          className={cn(
+            'px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap',
             activeQuickFilter === 'all'
-              ? 'bg-slate-900 text-white dark:bg-slate-800 dark:text-sky-400 border-slate-900 dark:border-slate-700 shadow-xs'
+              ? 'bg-primary/10 text-primary border-primary/20 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-xs'
               : 'bg-card text-muted-foreground hover:text-foreground border-border/70'
-          }`}
+          )}
         >
           All Issues ({tasks.length})
         </button>
@@ -322,11 +370,12 @@ function TasksPage() {
         <button
           type="button"
           onClick={() => setActiveQuickFilter('my_tasks')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+          className={cn(
+            'px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap',
             activeQuickFilter === 'my_tasks'
-              ? 'bg-slate-900 text-white dark:bg-slate-800 dark:text-sky-400 border-slate-900 dark:border-slate-700 shadow-xs'
+              ? 'bg-primary/10 text-primary border-primary/20 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-xs'
               : 'bg-card text-muted-foreground hover:text-foreground border-border/70'
-          }`}
+          )}
         >
           My Assigned Tasks
         </button>
@@ -334,11 +383,12 @@ function TasksPage() {
         <button
           type="button"
           onClick={() => setActiveQuickFilter('urgent')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+          className={cn(
+            'px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap',
             activeQuickFilter === 'urgent'
-              ? 'bg-slate-900 text-white dark:bg-slate-800 dark:text-sky-400 border-slate-900 dark:border-slate-700 shadow-xs'
+              ? 'bg-primary/10 text-primary border-primary/20 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-xs'
               : 'bg-card text-muted-foreground hover:text-foreground border-border/70'
-          }`}
+          )}
         >
           🔥 Urgent & High Priority
         </button>
@@ -346,40 +396,58 @@ function TasksPage() {
         <button
           type="button"
           onClick={() => setActiveQuickFilter('in_progress')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+          className={cn(
+            'px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer whitespace-nowrap',
             activeQuickFilter === 'in_progress'
-              ? 'bg-slate-900 text-white dark:bg-slate-800 dark:text-sky-400 border-slate-900 dark:border-slate-700 shadow-xs'
+              ? 'bg-primary/10 text-primary border-primary/20 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-xs'
               : 'bg-card text-muted-foreground hover:text-foreground border-border/70'
-          }`}
+          )}
         >
           ⚡ In Progress & Review
         </button>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 p-3 rounded-2xl border border-border/70 bg-card/85 backdrop-blur-md">
-        <div className="relative w-full lg:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+      <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3 p-3 rounded-2xl border border-border/70 bg-card/85 backdrop-blur-md">
+        <div className="relative w-full xl:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by title, key, or notes..."
-            className="pl-8 h-8 text-xs bg-background"
+            className="pl-8 pr-8 h-8 text-xs bg-background"
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              type="button"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer p-0.5"
+              aria-label="Clear search"
+            >
+              <X className="size-3" />
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
           {/* Project Filter */}
           <Select
             value={projectFilter}
             onValueChange={(val) => setProjectFilter((val as string) || 'all')}
           >
-            <SelectTrigger className="h-8 min-w-32 bg-background text-xs font-medium">
+            <SelectTrigger className="h-8 w-full sm:w-auto sm:min-w-[130px] bg-background text-xs font-medium px-2.5">
               <SelectValue placeholder="All Projects">
                 {(val) => {
                   if (val === 'all' || !val) return 'All Projects'
                   const p = projects.find((proj: any) => proj.id === val)
-                  return p ? `[${p.key}] ${p.name}` : 'All Projects'
+                  return p ? (
+                    <span className="truncate">
+                      <span className="font-mono font-bold text-primary mr-1">[{p.key}]</span>
+                      {p.name}
+                    </span>
+                  ) : (
+                    'All Projects'
+                  )
                 }}
               </SelectValue>
             </SelectTrigger>
@@ -387,7 +455,7 @@ function TasksPage() {
               <SelectItem value="all" className="text-xs">All Projects</SelectItem>
               {projects.map((p: any) => (
                 <SelectItem key={p.id} value={p.id} className="text-xs">
-                  <span className="font-mono font-bold mr-1">[{p.key}]</span> {p.name}
+                  <span className="font-mono font-bold mr-1.5 text-primary">[{p.key}]</span> {p.name}
                 </SelectItem>
               ))}
             </SelectPopup>
@@ -398,16 +466,35 @@ function TasksPage() {
             value={statusFilter}
             onValueChange={(val) => setStatusFilter((val as string) || 'all')}
           >
-            <SelectTrigger className="h-8 min-w-28 bg-background text-xs font-medium capitalize">
-              <SelectValue placeholder="All Statuses" />
+            <SelectTrigger className="h-8 w-full sm:w-auto sm:min-w-[120px] bg-background text-xs font-medium capitalize px-2.5">
+              <SelectValue placeholder="All Statuses">
+                {(val) => {
+                  if (val === 'all' || !val) return 'All Statuses'
+                  const cfg = TASK_STATUS_CONFIG[val as TaskStatus]
+                  if (!cfg) return 'All Statuses'
+                  const StatusIcon = cfg.icon
+                  return (
+                    <span className="flex items-center gap-1.5 truncate">
+                      <StatusIcon className="size-3 shrink-0" />
+                      <span className="truncate">{cfg.label}</span>
+                    </span>
+                  )
+                }}
+              </SelectValue>
             </SelectTrigger>
             <SelectPopup>
               <SelectItem value="all" className="text-xs">All Statuses</SelectItem>
-              <SelectItem value="backlog" className="text-xs">Backlog</SelectItem>
-              <SelectItem value="todo" className="text-xs">To Do</SelectItem>
-              <SelectItem value="in_progress" className="text-xs">In Progress</SelectItem>
-              <SelectItem value="in_review" className="text-xs">In Review</SelectItem>
-              <SelectItem value="done" className="text-xs">Done</SelectItem>
+              {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => {
+                const StatusIcon = v.icon
+                return (
+                  <SelectItem key={k} value={k} className="text-xs capitalize">
+                    <span className="flex items-center gap-1.5">
+                      <StatusIcon className="size-3 shrink-0" />
+                      <span>{v.label}</span>
+                    </span>
+                  </SelectItem>
+                )
+              })}
             </SelectPopup>
           </Select>
 
@@ -416,15 +503,35 @@ function TasksPage() {
             value={priorityFilter}
             onValueChange={(val) => setPriorityFilter((val as string) || 'all')}
           >
-            <SelectTrigger className="h-8 min-w-28 bg-background text-xs font-medium capitalize">
-              <SelectValue placeholder="All Priorities" />
+            <SelectTrigger className="h-8 w-full sm:w-auto sm:min-w-[120px] bg-background text-xs font-medium capitalize px-2.5">
+              <SelectValue placeholder="All Priorities">
+                {(val) => {
+                  if (val === 'all' || !val) return 'All Priorities'
+                  const cfg = TASK_PRIORITY_CONFIG[val as TaskPriority]
+                  if (!cfg) return 'All Priorities'
+                  const PriorityIcon = cfg.icon
+                  return (
+                    <span className="flex items-center gap-1.5 truncate">
+                      <PriorityIcon className="size-3 shrink-0" />
+                      <span className="truncate">{cfg.label}</span>
+                    </span>
+                  )
+                }}
+              </SelectValue>
             </SelectTrigger>
             <SelectPopup>
               <SelectItem value="all" className="text-xs">All Priorities</SelectItem>
-              <SelectItem value="urgent" className="text-xs">🔴 Urgent</SelectItem>
-              <SelectItem value="high" className="text-xs">🟠 High</SelectItem>
-              <SelectItem value="medium" className="text-xs">🔵 Medium</SelectItem>
-              <SelectItem value="low" className="text-xs">⚪ Low</SelectItem>
+              {Object.entries(TASK_PRIORITY_CONFIG).map(([k, v]) => {
+                const PriorityIcon = v.icon
+                return (
+                  <SelectItem key={k} value={k} className="text-xs capitalize">
+                    <span className="flex items-center gap-1.5">
+                      <PriorityIcon className="size-3 shrink-0" />
+                      <span>{v.label}</span>
+                    </span>
+                  </SelectItem>
+                )
+              })}
             </SelectPopup>
           </Select>
 
@@ -433,15 +540,35 @@ function TasksPage() {
             value={typeFilter}
             onValueChange={(val) => setTypeFilter((val as string) || 'all')}
           >
-            <SelectTrigger className="h-8 min-w-28 bg-background text-xs font-medium capitalize">
-              <SelectValue placeholder="All Types" />
+            <SelectTrigger className="h-8 w-full sm:w-auto sm:min-w-[115px] bg-background text-xs font-medium capitalize px-2.5">
+              <SelectValue placeholder="All Types">
+                {(val) => {
+                  if (val === 'all' || !val) return 'All Types'
+                  const cfg = TASK_TYPE_CONFIG[val as TaskType]
+                  if (!cfg) return 'All Types'
+                  const TypeIcon = cfg.icon
+                  return (
+                    <span className="flex items-center gap-1.5 truncate">
+                      <TypeIcon className="size-3 shrink-0" />
+                      <span className="truncate">{cfg.label}</span>
+                    </span>
+                  )
+                }}
+              </SelectValue>
             </SelectTrigger>
             <SelectPopup>
               <SelectItem value="all" className="text-xs">All Types</SelectItem>
-              <SelectItem value="feature" className="text-xs">Feature</SelectItem>
-              <SelectItem value="bug" className="text-xs">Bug</SelectItem>
-              <SelectItem value="task" className="text-xs">Task</SelectItem>
-              <SelectItem value="improvement" className="text-xs">Improvement</SelectItem>
+              {Object.entries(TASK_TYPE_CONFIG).map(([k, v]) => {
+                const TypeIcon = v.icon
+                return (
+                  <SelectItem key={k} value={k} className="text-xs capitalize">
+                    <span className="flex items-center gap-1.5">
+                      <TypeIcon className="size-3 shrink-0" />
+                      <span>{v.label}</span>
+                    </span>
+                  </SelectItem>
+                )
+              })}
             </SelectPopup>
           </Select>
         </div>

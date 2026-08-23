@@ -11,7 +11,9 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Spinner } from '@/components/ui/spinner'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
   Select,
   SelectItem,
@@ -20,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useShakeError } from '@/components/ui/transitions'
+import { cn, safeJsonParseArray } from '@/lib/utils'
 import type { Task, Project, SafeUser, TaskStatus, TaskPriority, TaskType } from '@/db/schema'
 import {
   TASK_STATUS_CONFIG,
@@ -59,6 +62,7 @@ interface TaskModalProps {
     dueDate?: string
     labels: string[]
     subtasks: { id: string; title: string; completed: boolean }[]
+    attachments?: any[]
   }) => Promise<void>
   isSubmitting?: boolean
 }
@@ -100,12 +104,8 @@ export function TaskModal({
       setEstimatePoints(task.estimatePoints ?? null)
       setAssigneeId(task.assigneeId || '')
       setDueDate(task.dueDate || '')
-      try {
-        const parsed = JSON.parse(task.labels || '[]')
-        setLabelsInput(Array.isArray(parsed) ? parsed.join(', ') : '')
-      } catch {
-        setLabelsInput('')
-      }
+      const parsedLabels = safeJsonParseArray<string>(task.labels, [])
+      setLabelsInput(parsedLabels.join(', '))
     } else {
       setProjectId(defaultProjectId || (projects[0]?.id ?? ''))
       setTitle('')
@@ -118,6 +118,7 @@ export function TaskModal({
       setDueDate('')
       setLabelsInput('')
     }
+    shake.clearError()
   }, [task, open, defaultProjectId, defaultStatus, projects, users])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,14 +141,7 @@ export function TaskModal({
       .map((l) => l.trim().toLowerCase())
       .filter(Boolean)
 
-    let existingSubtasks: any[] = []
-    if (task) {
-      try {
-        existingSubtasks = JSON.parse(task.subtasks || '[]')
-      } catch {
-        existingSubtasks = []
-      }
-    }
+    const existingSubtasks = task ? safeJsonParseArray(task.subtasks, []) : []
 
     try {
       await onSubmit({
@@ -174,36 +168,42 @@ export function TaskModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPopup className={`max-w-xl max-h-[90vh] overflow-y-auto ${shake.isShaking ? 'is-shaking' : ''}`}>
+      <DialogPopup className={cn('sm:max-w-xl', shake.isShaking && 'is-shaking')}>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CheckSquare className="size-5 text-primary" />
-            {isEdit ? 'Edit Task / Issue' : 'Create New Task'}
-          </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
-            {isEdit ? `Updating task ${task?.taskKey}` : 'Assign work, set priority estimates, and track sprint items.'}
-          </DialogDescription>
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs">
+              <CheckSquare className="size-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-semibold">
+                {isEdit ? 'Edit Task / Issue' : 'Create New Task'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                {isEdit ? `Updating task ${task?.taskKey}` : 'Assign work, set priority estimates, and track sprint items.'}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        {shake.errorText && (
-          <div className="t-error-msg p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-xs flex items-center gap-2 mx-6 mt-2">
-            <AlertCircle className="size-4 shrink-0" />
-            <span>{shake.errorText}</span>
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="contents">
+          <DialogPanel className="space-y-4.5">
+            {shake.errorText && (
+              <div className="t-error-msg p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-xs flex items-center gap-2">
+                <AlertCircle className="size-4 shrink-0" />
+                <span>{shake.errorText}</span>
+              </div>
+            )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-2">
-          <DialogPanel className="space-y-4">
             {/* Project Selector */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
-                <Folder className="size-3.5" /> Project
+                <Folder className="size-3.5" /> Project <span className="text-destructive">*</span>
               </label>
               <Select
                 value={projectId}
                 onValueChange={(val) => setProjectId((val as string) || '')}
               >
-                <SelectTrigger className="h-9 w-full bg-background text-xs font-medium">
+                <SelectTrigger className="h-9 w-full bg-background text-xs font-medium px-2.5">
                   <SelectValue placeholder="Select Project">
                     {(val) => {
                       const p = projects.find((proj) => proj.id === val)
@@ -214,7 +214,7 @@ export function TaskModal({
                 <SelectPopup>
                   {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id} className="text-xs">
-                      <span className="font-mono font-bold mr-1">[{p.key}]</span> {p.name}
+                      <span className="font-mono font-bold mr-1.5 text-primary">[{p.key}]</span> {p.name}
                     </SelectItem>
                   ))}
                 </SelectPopup>
@@ -223,20 +223,21 @@ export function TaskModal({
 
             {/* Title */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                Task Title *
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 flex items-center gap-1">
+                <span>Task Title</span> <span className="text-destructive">*</span>
               </label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Implement WebAuthn authentication protocol"
                 required
-                className={`text-sm h-9 bg-background ${shake.isError ? 'border-destructive ring-destructive/20' : ''}`}
+                autoFocus
+                className={cn('text-sm h-9 bg-background', shake.isError && 'border-destructive ring-destructive/20')}
               />
             </div>
 
             {/* Type & Priority & Status */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Type */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
@@ -246,7 +247,7 @@ export function TaskModal({
                   value={type}
                   onValueChange={(val) => setType((val as TaskType) || 'feature')}
                 >
-                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium capitalize">
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium capitalize px-2.5">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectPopup>
@@ -268,7 +269,7 @@ export function TaskModal({
                   value={priority}
                   onValueChange={(val) => setPriority((val as TaskPriority) || 'medium')}
                 >
-                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium capitalize">
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium capitalize px-2.5">
                     <SelectValue placeholder="Priority" />
                   </SelectTrigger>
                   <SelectPopup>
@@ -290,7 +291,7 @@ export function TaskModal({
                   value={status}
                   onValueChange={(val) => setStatus((val as TaskStatus) || 'todo')}
                 >
-                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium capitalize">
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium capitalize px-2.5">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectPopup>
@@ -314,24 +315,55 @@ export function TaskModal({
                   value={assigneeId || 'unassigned'}
                   onValueChange={(val) => setAssigneeId(val === 'unassigned' ? '' : (val as string))}
                 >
-                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium">
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium px-2.5">
                     <SelectValue placeholder="Assignee">
                       {(val) => {
-                        if (!val || val === 'unassigned') return 'Unassigned'
+                        if (!val || val === 'unassigned') {
+                          return (
+                            <span className="flex items-center gap-2 text-muted-foreground truncate">
+                              <User className="size-3.5 text-muted-foreground/60" />
+                              <span>Unassigned</span>
+                            </span>
+                          )
+                        }
                         const u = users.find((user) => user.id === val)
-                        return u ? `${u.name} (${u.role})` : 'Unassigned'
+                        if (!u) return 'Unassigned'
+                        const initials = u.name.split(' ').map((n) => n[0]).join('').slice(0, 2)
+                        return (
+                          <span className="flex items-center gap-2 truncate">
+                            <Avatar className="size-5 shrink-0">
+                              {u.avatar ? <AvatarImage src={u.avatar} alt={u.name} /> : null}
+                              <AvatarFallback className="text-[9px] font-semibold">{initials}</AvatarFallback>
+                            </Avatar>
+                            <span className="truncate font-medium text-foreground">{u.name}</span>
+                            <span className="text-[11px] text-muted-foreground truncate">({u.role})</span>
+                          </span>
+                        )
                       }}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectPopup>
                     <SelectItem value="unassigned" className="text-xs">
-                      Unassigned
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <User className="size-3.5" />
+                        <span>Unassigned</span>
+                      </span>
                     </SelectItem>
-                    {users.map((u) => (
-                      <SelectItem key={u.id} value={u.id} className="text-xs">
-                        {u.name} ({u.role})
-                      </SelectItem>
-                    ))}
+                    {users.map((u) => {
+                      const initials = u.name.split(' ').map((n) => n[0]).join('').slice(0, 2)
+                      return (
+                        <SelectItem key={u.id} value={u.id} className="py-1.5 text-xs">
+                          <span className="flex items-center gap-2">
+                            <Avatar className="size-5 shrink-0">
+                              {u.avatar ? <AvatarImage src={u.avatar} alt={u.name} /> : null}
+                              <AvatarFallback className="text-[9px] font-semibold">{initials}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium text-foreground">{u.name}</span>
+                            <span className="text-muted-foreground text-[11px]">({u.role})</span>
+                          </span>
+                        </SelectItem>
+                      )
+                    })}
                   </SelectPopup>
                 </Select>
               </div>
@@ -344,7 +376,7 @@ export function TaskModal({
                   value={estimatePoints ? String(estimatePoints) : 'none'}
                   onValueChange={(val) => setEstimatePoints(val === 'none' ? null : Number(val))}
                 >
-                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium">
+                  <SelectTrigger className="h-9 w-full bg-background text-xs font-medium px-2.5">
                     <SelectValue placeholder="Story Points">
                       {(val) => {
                         if (!val || val === 'none') return 'No estimate'
@@ -397,21 +429,21 @@ export function TaskModal({
               <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                 Description & Acceptance Criteria
               </label>
-              <textarea
+              <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Add technical context, reproduction steps, or milestone requirements..."
                 rows={3}
-                className="w-full p-3 rounded-xl border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-y"
+                className="bg-background text-xs"
               />
             </div>
           </DialogPanel>
 
-          <DialogFooter className="border-t border-border/50 pt-3">
-            <DialogClose render={<Button variant="outline" size="sm" type="button" />}>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" size="default" type="button" />}>
               Cancel
             </DialogClose>
-            <Button size="sm" type="submit" disabled={isSubmitting} className="gap-1.5 shadow-xs">
+            <Button size="default" type="submit" disabled={isSubmitting} className="gap-1.5 shadow-xs">
               {isSubmitting && <Spinner className="size-3.5" />}
               {isEdit ? 'Save Changes' : 'Create Task'}
             </Button>

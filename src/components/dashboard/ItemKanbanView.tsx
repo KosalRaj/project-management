@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/menu'
 import type { Item, ItemCategory, ItemPriority, ItemStatus } from '@/db/schema'
 import { CATEGORY_CONFIG, PRIORITY_CONFIG } from './types'
+import { safeJsonParseArray } from '@/lib/utils'
 import {
   Plus,
   MoreHorizontal,
@@ -110,12 +111,7 @@ export function ItemKanbanView({
                   const prevStatus = getPreviousStatus(item.status as ItemStatus)
                   const nextStatus = getNextStatus(item.status as ItemStatus)
 
-                  let tags: string[] = []
-                  try {
-                    tags = JSON.parse(item.tags || '[]')
-                  } catch {
-                    tags = []
-                  }
+                  const tags = safeJsonParseArray<string>(item.tags, [])
 
                   return (
                     <div

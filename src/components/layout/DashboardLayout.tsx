@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useRouterState, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/lib/auth-context'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -14,6 +14,10 @@ import {
   MenuGroupLabel,
 } from '@/components/ui/menu'
 import ThemeToggle from '@/components/ThemeToggle'
+import { NotificationCenter } from './NotificationCenter'
+import { CommandPalette } from './CommandPalette'
+import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog'
+import { cn } from '@/lib/utils'
 import {
   Layers,
   Users,
@@ -26,6 +30,9 @@ import {
   LayoutDashboard,
   Folder,
   CheckSquare,
+  Search,
+  HelpCircle,
+  Command,
 } from 'lucide-react'
 
 interface DashboardLayoutProps {
@@ -38,6 +45,77 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
+
+  // Global keyboard shortcuts listener
+  useEffect(() => {
+    let lastKey = ''
+    let keyTimeout: any = null
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. ⌘K or Ctrl+K to open Command Palette
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setCommandPaletteOpen((prev) => !prev)
+        return
+      }
+
+      // Ignore other single key shortcuts if user is inside an input, textarea or select
+      const activeEl = document.activeElement
+      const isInput =
+        activeEl?.tagName === 'INPUT' ||
+        activeEl?.tagName === 'TEXTAREA' ||
+        activeEl?.tagName === 'SELECT' ||
+        activeEl?.getAttribute('contenteditable') === 'true'
+
+      if (isInput) return
+
+      // 2. '?' to open shortcuts
+      if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault()
+        setShortcutsOpen(true)
+        return
+      }
+
+      // 3. Two-key sequences (e.g. 'g' then 't')
+      if (lastKey === 'g') {
+        if (e.key === 't') {
+          e.preventDefault()
+          navigate({ to: '/tasks' })
+        } else if (e.key === 'p') {
+          e.preventDefault()
+          navigate({ to: '/projects' })
+        } else if (e.key === 'a') {
+          e.preventDefault()
+          navigate({ to: '/analytics' })
+        } else if (e.key === 'u') {
+          e.preventDefault()
+          navigate({ to: '/users' })
+        } else if (e.key === 's') {
+          e.preventDefault()
+          navigate({ to: '/settings' })
+        }
+        lastKey = ''
+        clearTimeout(keyTimeout)
+        return
+      }
+
+      if (e.key === 'g') {
+        lastKey = 'g'
+        clearTimeout(keyTimeout)
+        keyTimeout = setTimeout(() => {
+          lastKey = ''
+        }, 1000)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      clearTimeout(keyTimeout)
+    }
+  }, [navigate])
 
   const navItems = [
     {
@@ -126,19 +204,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <Link
                 key={item.href}
                 to={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group ${
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group cursor-pointer',
                   isActive
-                    ? 'bg-slate-900 text-white dark:bg-slate-800 dark:text-sky-400 dark:border dark:border-slate-700/60 font-semibold shadow-xs'
+                    ? 'bg-primary/10 text-primary font-semibold border border-primary/20 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
-                }`}
+                )}
               >
                 <Icon
-                  className={`size-4 shrink-0 transition-transform group-hover:scale-110 ${
-                    isActive ? 'text-white dark:text-sky-400' : 'text-muted-foreground group-hover:text-foreground'
-                  }`}
+                  className={cn(
+                    'size-4 shrink-0 transition-transform group-hover:scale-110',
+                    isActive ? 'text-primary dark:text-sky-400' : 'text-muted-foreground group-hover:text-foreground'
+                  )}
                 />
                 <span className="flex-1 truncate">{item.title}</span>
-                {isActive && <ChevronRight className="size-3.5 opacity-80" />}
+                {isActive && <ChevronRight className="size-3.5 opacity-80 text-primary dark:text-sky-400" />}
               </Link>
             )
           })}
@@ -228,11 +308,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     key={item.href}
                     to={item.href}
                     onClick={() => setMobileDrawerOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium ${
-                      isActive ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:bg-muted'
-                    }`}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium cursor-pointer',
+                      isActive
+                        ? 'bg-primary/10 text-primary font-semibold border border-primary/20 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30'
+                        : 'text-muted-foreground hover:bg-muted'
+                    )}
                   >
-                    <Icon className="size-4" />
+                    <Icon className={cn('size-4', isActive ? 'text-primary dark:text-sky-400' : 'text-muted-foreground')} />
                     <span>{item.title}</span>
                   </Link>
                 )
@@ -286,12 +369,39 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Right Header Actions */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            {/* Quick ⌘K Search Button */}
+            <button
+              type="button"
+              onClick={() => setCommandPaletteOpen(true)}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-border/70 bg-muted/40 hover:bg-muted hover:border-border transition-all text-xs text-muted-foreground hover:text-foreground cursor-pointer shadow-2xs"
+            >
+              <Search className="size-3.5" />
+              <span className="hidden md:inline">Search...</span>
+              <kbd className="hidden md:inline-flex items-center gap-0.5 font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-background border border-border/70 text-foreground">
+                <Command className="size-2.5" /> K
+              </kbd>
+            </button>
+
+            {/* Notification Center */}
+            <NotificationCenter />
+
+            {/* Keyboard Shortcuts Help */}
+            <button
+              type="button"
+              onClick={() => setShortcutsOpen(true)}
+              title="Keyboard Shortcuts (?)"
+              className="flex size-9 items-center justify-center rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/70 hover:border-border transition-all cursor-pointer text-muted-foreground hover:text-foreground"
+            >
+              <HelpCircle className="size-4.5" />
+            </button>
+
+            {/* Dark / Light Mode Toggle */}
             <ThemeToggle />
 
             {/* User Dropdown */}
             <Menu>
-              <MenuTrigger className="flex items-center gap-2 p-1.5 rounded-full hover:ring-2 hover:ring-primary/20 transition-all">
+              <MenuTrigger className="flex items-center gap-2 p-1.5 rounded-full hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer">
                 <Avatar className="size-8">
                   <AvatarImage src={user?.avatar || undefined} alt={user?.name || 'User'} />
                   <AvatarFallback className="text-xs font-bold text-primary">
@@ -341,6 +451,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* Global Command Palette (⌘K) */}
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+      />
+
+      {/* Keyboard Shortcuts Dialog (?) */}
+      <KeyboardShortcutsDialog
+        open={shortcutsOpen}
+        onOpenChange={setShortcutsOpen}
+      />
     </div>
   )
 }

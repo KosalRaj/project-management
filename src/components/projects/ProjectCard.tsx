@@ -29,9 +29,10 @@ interface ProjectCardProps {
   project: ProjectWithStats
   onEdit: (project: ProjectWithStats) => void
   onDelete: (project: ProjectWithStats) => void
+  isAdmin?: boolean
 }
 
-export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, onEdit, onDelete, isAdmin = false }: ProjectCardProps) {
   const healthCfg = PROJECT_HEALTH_CONFIG[project.health as ProjectHealth] || PROJECT_HEALTH_CONFIG.on_track
   const colorCfg = PROJECT_COLOR_MAP[project.color] || PROJECT_COLOR_MAP.sky
   const IconComp = PROJECT_ICONS[project.icon] || Folder
@@ -81,13 +82,17 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
               <MenuItem onClick={() => onEdit(project)} className="gap-2 text-xs">
                 <Edit className="size-3.5" /> Edit Project
               </MenuItem>
-              <MenuSeparator />
-              <MenuItem
-                onClick={() => onDelete(project)}
-                className="gap-2 text-xs text-destructive focus:bg-destructive/10"
-              >
-                <Trash2 className="size-3.5" /> Delete
-              </MenuItem>
+              {isAdmin && (
+                <>
+                  <MenuSeparator />
+                  <MenuItem
+                    onClick={() => onDelete(project)}
+                    className="gap-2 text-xs text-destructive focus:bg-destructive/10"
+                  >
+                    <Trash2 className="size-3.5" /> Delete
+                  </MenuItem>
+                </>
+              )}
             </MenuPopup>
           </Menu>
         </div>
@@ -129,7 +134,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
           <Link
             to="/projects/$projectId"
             params={{ projectId: project.id }}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline cursor-pointer"
           >
             Open Board <ArrowRight className="size-3.5" />
           </Link>

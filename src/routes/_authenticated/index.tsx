@@ -483,7 +483,7 @@ function DashboardPage() {
                 key={p.id}
                 to="/projects/$projectId"
                 params={{ projectId: p.id }}
-                className="group relative flex flex-col justify-between p-4 rounded-2xl border border-border/70 bg-card/85 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all backdrop-blur-md"
+                className="group relative flex flex-col justify-between p-4 rounded-2xl border border-border/70 bg-card/85 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all backdrop-blur-md cursor-pointer"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -503,16 +503,24 @@ function DashboardPage() {
                   </p>
                 </div>
 
-                <div className="mt-3 pt-2 border-t border-border/40 space-y-1">
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-muted-foreground">{p.completedTasks}/{p.totalTasks} tasks</span>
-                    <span className="font-bold text-foreground">{p.progress}%</span>
+                <div className="mt-3 pt-2 border-t border-border/40 space-y-2">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-muted-foreground">{p.completedTasks}/{p.totalTasks} tasks</span>
+                      <span className="font-bold text-foreground">{p.progress}%</span>
+                    </div>
+                    <div className="w-full bg-muted/60 rounded-full h-1 overflow-hidden">
+                      <div
+                        className="bg-primary h-full rounded-full transition-all duration-300"
+                        style={{ width: `${p.progress}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full bg-muted/60 rounded-full h-1 overflow-hidden">
-                    <div
-                      className="bg-primary h-full rounded-full transition-all duration-300"
-                      style={{ width: `${p.progress}%` }}
-                    />
+
+                  <div className="flex items-center justify-end pt-0.5">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary group-hover:underline">
+                      Open Board <ArrowRight className="size-3" />
+                    </span>
                   </div>
                 </div>
               </Link>

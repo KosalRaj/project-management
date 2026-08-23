@@ -13,6 +13,7 @@ import {
   TASK_PRIORITY_CONFIG,
   TASK_TYPE_CONFIG,
 } from './types'
+import { safeJsonParseArray } from '@/lib/utils'
 import {
   Plus,
   MoreHorizontal,
@@ -111,28 +112,11 @@ export function TaskKanbanView({
                   const prevStage = getPrevStage(t.status as TaskStatus)
                   const nextStage = getNextStage(t.status as TaskStatus)
 
-                  let subtasks: SubtaskItem[] = []
-                  try {
-                    subtasks = JSON.parse(t.subtasks || '[]')
-                  } catch {
-                    subtasks = []
-                  }
-                  const completedSubtasks = subtasks.filter((s) => s.completed).length
-
-                  let commentsCount = 0
-                  try {
-                    const parsed = JSON.parse(t.comments || '[]')
-                    commentsCount = Array.isArray(parsed) ? parsed.length : 0
-                  } catch {
-                    commentsCount = 0
-                  }
-
-                  let labels: string[] = []
-                  try {
-                    labels = JSON.parse(t.labels || '[]')
-                  } catch {
-                    labels = []
-                  }
+                  const subtasks = safeJsonParseArray<SubtaskItem>(t.subtasks, [])
+                  const completedSubtasks = subtasks.filter((s) => s?.completed).length
+                  const comments = safeJsonParseArray(t.comments, [])
+                  const commentsCount = comments.length
+                  const labels = safeJsonParseArray<string>(t.labels, [])
 
                   return (
                     <div

@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import { useAuth } from '@/lib/auth-context'
+import { usePermissions } from '@/lib/use-permissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Spinner } from '@/components/ui/spinner'
 import { updateUserFn, resetUserPasswordFn } from '@/server/users'
+import { resetAndSeedWorkspaceFn } from '@/server/projects'
 import {
   User as UserIcon,
   Lock,
@@ -16,10 +17,12 @@ import {
   AlertCircle,
   KeyRound,
   Laptop,
+  Database,
+  RotateCcw,
 } from 'lucide-react'
 
 export function SettingsView() {
-  const { user, refetchUser } = useAuth()
+  const { user, token, isAdmin, refetchUser } = usePermissions()
 
   const [name, setName] = useState(user?.name || '')
   const [department, setDepartment] = useState(user?.department || '')
@@ -30,9 +33,25 @@ export function SettingsView() {
 
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [isSeedingWorkspace, setIsSeedingWorkspace] = useState(false)
 
   const [profileMsg, setProfileMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [passwordMsg, setPasswordMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [seedMsg, setSeedMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  const handleSeedWorkspace = async () => {
+    if (!isAdmin) return
+    setIsSeedingWorkspace(true)
+    setSeedMsg(null)
+    try {
+      await resetAndSeedWorkspaceFn({ data: { token: token || undefined } })
+      setSeedMsg({ type: 'success', text: 'Workspace successfully reset and populated with rich sample projects, tasks, and initiatives!' })
+    } catch (err: any) {
+      setSeedMsg({ type: 'error', text: err?.message || 'Failed to seed workspace' })
+    } finally {
+      setIsSeedingWorkspace(false)
+    }
+  }
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -264,12 +283,64 @@ export function SettingsView() {
           </div>
 
           <div className="flex justify-end pt-2">
-            <Button size="sm" type="submit" disabled={isChangingPassword} className="gap-1.5">
+            <Button size="sm" type="submit" disabled={isChangingPassword} className="gap-1.5 cursor-pointer">
               {isChangingPassword && <Spinner className="size-3.5" />}
               Update Password
             </Button>
           </div>
         </form>
+      </div>
+
+      {/* Demo Data & Workspace Management */}
+      <div className="rounded-2xl border border-border/70 bg-card/85 p-6 shadow-xs backdrop-blur-md space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <Database className="size-4 text-primary" />
+            Workspace & Demo Data Management
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Reset or populate realistic sample data across projects, multi-stage tasks, subtasks, and roadmap initiatives.
+          </p>
+        </div>
+
+        {seedMsg && (
+          <div
+            className={`flex items-center gap-2 p-3 rounded-xl text-xs font-medium border ${
+              seedMsg.type === 'success'
+                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                : 'bg-destructive/10 text-destructive border-destructive/30'
+            }`}
+          >
+            {seedMsg.type === 'success' ? <CheckCircle2 className="size-4 shrink-0" /> : <AlertCircle className="size-4 shrink-0" />}
+            <span>{seedMsg.text}</span>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl bg-muted/30 border border-border/50">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-foreground">Reset & Seed Sample Workspace</span>
+              {!isAdmin && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                  <Lock className="size-2.5" /> Admin Only
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Loads full sample dataset with active sprint projects (CORE, UI, CLOUD), task pipelines, and assigned collaborators.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSeedWorkspace}
+            disabled={!isAdmin || isSeedingWorkspace}
+            className={`gap-2 text-xs h-8 shrink-0 ${!isAdmin ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+          >
+            {isSeedingWorkspace ? <Spinner className="size-3.5" /> : <RotateCcw className="size-3.5" />}
+            Reset & Seed Data
+          </Button>
+        </div>
       </div>
 
       {/* System & Architecture Info */}

@@ -6,6 +6,8 @@ import { ProjectCard } from '@/components/projects/ProjectCard'
 import { ProjectModal } from '@/components/projects/ProjectModal'
 import { DeleteConfirmDialog } from '@/components/dashboard/DeleteConfirmDialog'
 import { AnimatedDigitGroup, SuccessCheckIcon } from '@/components/ui/transitions'
+import { exportProjectsToCsv } from '@/lib/export-utils'
+import { usePermissions } from '@/lib/use-permissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -22,9 +24,10 @@ import {
   CheckCircle2,
   DollarSign,
   AlertTriangle,
+  Download,
 } from 'lucide-react'
 
-export const Route = createFileRoute('/_authenticated/projects')({
+export const Route = createFileRoute('/_authenticated/projects/')({
   loader: async () => {
     const [projects, users] = await Promise.all([getProjectsFn(), getUsersFn()])
     return { projects, users }
@@ -35,6 +38,7 @@ export const Route = createFileRoute('/_authenticated/projects')({
 function ProjectsPage() {
   const { projects, users } = Route.useLoaderData()
   const router = useRouter()
+  const { isAdmin, canCreateProject, token } = usePermissions()
   const [, startTransition] = useTransition()
 
   const [search, setSearch] = useState('')
@@ -104,7 +108,7 @@ function ProjectsPage() {
     if (!projectToDelete) return
     setIsSubmitting(true)
     try {
-      await deleteProjectFn({ data: { id: projectToDelete.id } })
+      await deleteProjectFn({ data: { id: projectToDelete.id, token: token || undefined } })
       startTransition(() => {
         router.invalidate()
       })
@@ -148,12 +152,27 @@ function ProjectsPage() {
           </p>
         </div>
 
-        <Button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="gap-2 shadow-sm font-semibold h-9 text-xs"
-        >
-          <Plus className="size-4" /> Create Project
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              exportProjectsToCsv(filteredProjects)
+              showToast('Exported projects roadmap to CSV', 'success')
+            }}
+            className="gap-1.5 shadow-2xs font-semibold h-9 text-xs cursor-pointer"
+          >
+            <Download className="size-3.5 text-muted-foreground" /> Export CSV
+          </Button>
+
+          {canCreateProject && (
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="gap-2 shadow-sm font-semibold h-9 text-xs cursor-pointer"
+            >
+              <Plus className="size-4" /> Create Project
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -232,7 +251,7 @@ function ProjectsPage() {
       {/* Filter Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-2xl border border-border/70 bg-card/85 backdrop-blur-md">
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -298,7 +317,7 @@ function ProjectsPage() {
                   Try clearing your search query or create a new project.
                 </p>
               </div>
-              <Button size="sm" onClick={() => setIsCreateModalOpen(true)} className="mt-2 text-xs gap-1.5">
+              <Button size="sm" onClick={() => setIsCreateModalOpen(true)} className="mt-2 text-xs gap-1.5 cursor-pointer">
                 <Plus className="size-3.5" /> Create Project
               </Button>
             </div>
@@ -308,6 +327,7 @@ function ProjectsPage() {
             <ProjectCard
               key={proj.id}
               project={proj}
+              isAdmin={isAdmin}
               onEdit={(p) => {
                 setSelectedProjectForEdit(p)
                 setIsEditModalOpen(true)

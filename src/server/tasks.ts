@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { db, ensureTablesExist } from '@/db'
-import { tasks, projects, type TaskStatus, type TaskPriority, type TaskType, type CommentItem } from '@/db/schema'
+import { tasks, projects, activityLogs, type TaskStatus, type TaskPriority, type TaskType, type CommentItem, type AttachmentItem } from '@/db/schema'
 import { eq, desc, inArray } from 'drizzle-orm'
 
 // 1. Get all tasks with optional filters
@@ -84,6 +84,7 @@ export const createTaskFn = createServerFn({ method: 'POST' })
       dueDate?: string
       labels?: string[]
       subtasks?: { id: string; title: string; completed: boolean }[]
+      attachments?: AttachmentItem[]
     }) => {
       if (!data.title || data.title.trim().length === 0) throw new Error('Task title is required')
       if (!data.projectId) throw new Error('Project ID is required')
@@ -124,11 +125,25 @@ export const createTaskFn = createServerFn({ method: 'POST' })
         labels: JSON.stringify(data.labels || []),
         subtasks: JSON.stringify(data.subtasks || []),
         comments: JSON.stringify([]),
+        attachments: JSON.stringify(data.attachments || []),
         sortOrder: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       })
       .returning()
+
+    // Log activity
+    try {
+      await db.insert(activityLogs).values({
+        userName: data.assigneeName || 'Team Member',
+        userAvatar: data.assigneeAvatar || null,
+        action: 'created',
+        entityType: 'task',
+        entityId: taskKey,
+        entityTitle: newTask.title,
+        details: `Created task ${taskKey} in ${project.name}`,
+      })
+    } catch (_) {}
 
     return newTask
   })
@@ -151,11 +166,12 @@ export const updateTaskFn = createServerFn({ method: 'POST' })
       labels?: string[]
       subtasks?: { id: string; title: string; completed: boolean }[]
       comments?: any[]
+      attachments?: AttachmentItem[]
     }) => data,
   )
   .handler(async ({ data }) => {
     await ensureTablesExist()
-    const { id, labels, subtasks, comments, ...rest } = data
+    const { id, labels, subtasks, comments, attachments, ...rest } = data
 
     const updates: Record<string, any> = {
       ...rest,
@@ -171,8 +187,27 @@ export const updateTaskFn = createServerFn({ method: 'POST' })
     if (comments !== undefined) {
       updates.comments = JSON.stringify(comments)
     }
+    if (attachments !== undefined) {
+      updates.attachments = JSON.stringify(attachments)
+    }
 
     const [updated] = await db.update(tasks).set(updates).where(eq(tasks.id, id)).returning()
+
+    // Log status change activity
+    if (data.status && updated) {
+      try {
+        await db.insert(activityLogs).values({
+          userName: updated.assigneeName || 'Team Member',
+          userAvatar: updated.assigneeAvatar || null,
+          action: 'updated_status',
+          entityType: 'task',
+          entityId: updated.taskKey,
+          entityTitle: updated.title,
+          details: `Shifted stage to ${data.status.replace('_', ' ')}`,
+        })
+      } catch (_) {}
+    }
+
     return updated
   })
 
@@ -243,7 +278,8 @@ export const addCommentToTaskFn = createServerFn({ method: 'POST' })
 
     let comments: CommentItem[] = []
     try {
-      comments = JSON.parse(task.comments || '[]')
+      const parsed = JSON.parse(task.comments || '[]')
+      comments = Array.isArray(parsed) ? parsed : []
     } catch {
       comments = []
     }

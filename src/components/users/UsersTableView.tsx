@@ -43,6 +43,7 @@ interface UsersTableViewProps {
   onToggleStatus: (id: string, status: UserStatus) => void
   onResetPassword: (user: SafeUser) => void
   currentUserId?: string
+  isAdmin?: boolean
 }
 
 const STATUS_SELECT_OPTIONS: { label: string; value: UserStatus; dot: string }[] = [
@@ -63,6 +64,7 @@ export function UsersTableView({
   onToggleStatus,
   onResetPassword,
   currentUserId,
+  isAdmin = false,
 }: UsersTableViewProps) {
   const totalPages = Math.ceil(totalUsers / pageSize) || 1
 
@@ -198,67 +200,79 @@ export function UsersTableView({
 
                     {/* Actions */}
                     <td className="py-3 px-3 text-right">
-                      <Menu>
-                        <MenuTrigger className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80">
-                          <MoreHorizontal className="size-4" />
-                        </MenuTrigger>
-                        <MenuPopup align="end" className="w-48">
-                          <MenuGroup>
-                            <MenuGroupLabel>User Actions</MenuGroupLabel>
-                            <MenuItem onClick={() => onEdit(user)} className="gap-2 text-xs">
-                              <Edit className="size-3.5" />
-                              Edit Profile
-                            </MenuItem>
-                            <MenuItem onClick={() => onResetPassword(user)} className="gap-2 text-xs">
-                              <KeyRound className="size-3.5" />
-                              Reset Password
-                            </MenuItem>
-                          </MenuGroup>
-                          <MenuSeparator />
-                          <MenuGroup>
-                            <MenuGroupLabel>Status Change</MenuGroupLabel>
-                            {user.status !== 'active' && (
-                              <MenuItem
-                                onClick={() => onToggleStatus(user.id, 'active')}
-                                className="gap-2 text-xs text-emerald-600"
-                              >
-                                <UserCheck className="size-3.5" />
-                                Set Active
+                      {isAdmin ? (
+                        <Menu>
+                          <MenuTrigger className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 cursor-pointer">
+                            <MoreHorizontal className="size-4" />
+                          </MenuTrigger>
+                          <MenuPopup align="end" className="w-48">
+                            <MenuGroup>
+                              <MenuGroupLabel>User Actions</MenuGroupLabel>
+                              <MenuItem onClick={() => onEdit(user)} className="gap-2 text-xs">
+                                <Edit className="size-3.5" />
+                                Edit Profile
                               </MenuItem>
+                              <MenuItem onClick={() => onResetPassword(user)} className="gap-2 text-xs">
+                                <KeyRound className="size-3.5" />
+                                Reset Password
+                              </MenuItem>
+                            </MenuGroup>
+                            <MenuSeparator />
+                            <MenuGroup>
+                              <MenuGroupLabel>Status Change</MenuGroupLabel>
+                              {user.status !== 'active' && (
+                                <MenuItem
+                                  onClick={() => onToggleStatus(user.id, 'active')}
+                                  className="gap-2 text-xs text-emerald-600"
+                                >
+                                  <UserCheck className="size-3.5" />
+                                  Set Active
+                                </MenuItem>
+                              )}
+                              {user.status !== 'inactive' && (
+                                <MenuItem
+                                  onClick={() => onToggleStatus(user.id, 'inactive')}
+                                  className="gap-2 text-xs text-amber-600"
+                                >
+                                  <UserX className="size-3.5" />
+                                  Set Inactive
+                                </MenuItem>
+                              )}
+                              {user.status !== 'suspended' && (
+                                <MenuItem
+                                  onClick={() => onToggleStatus(user.id, 'suspended')}
+                                  className="gap-2 text-xs text-rose-600"
+                                >
+                                  <UserX className="size-3.5" />
+                                  Suspend Account
+                                </MenuItem>
+                              )}
+                            </MenuGroup>
+                            {!isCurrentUser && (
+                              <>
+                                <MenuSeparator />
+                                <MenuItem
+                                  onClick={() => onDelete(user)}
+                                  className="gap-2 text-xs text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                  Delete User
+                                </MenuItem>
+                              </>
                             )}
-                            {user.status !== 'inactive' && (
-                              <MenuItem
-                                onClick={() => onToggleStatus(user.id, 'inactive')}
-                                className="gap-2 text-xs text-amber-600"
-                              >
-                                <UserX className="size-3.5" />
-                                Set Inactive
-                              </MenuItem>
-                            )}
-                            {user.status !== 'suspended' && (
-                              <MenuItem
-                                onClick={() => onToggleStatus(user.id, 'suspended')}
-                                className="gap-2 text-xs text-rose-600"
-                              >
-                                <UserX className="size-3.5" />
-                                Suspend Account
-                              </MenuItem>
-                            )}
-                          </MenuGroup>
-                          {!isCurrentUser && (
-                            <>
-                              <MenuSeparator />
-                              <MenuItem
-                                onClick={() => onDelete(user)}
-                                className="gap-2 text-xs text-destructive focus:bg-destructive/10 focus:text-destructive"
-                              >
-                                <Trash2 className="size-3.5" />
-                                Delete User
-                              </MenuItem>
-                            </>
-                          )}
-                        </MenuPopup>
-                      </Menu>
+                          </MenuPopup>
+                        </Menu>
+                      ) : isCurrentUser ? (
+                        <button
+                          type="button"
+                          onClick={() => onEdit(user)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                        >
+                          <Edit className="size-3" /> Edit
+                        </button>
+                      ) : (
+                        <span className="text-muted-foreground/50 text-xs px-2">—</span>
+                      )}
                     </td>
                   </tr>
                 )
