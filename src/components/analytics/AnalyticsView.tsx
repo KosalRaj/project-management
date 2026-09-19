@@ -195,7 +195,7 @@ export function AnalyticsView({ items, projects = [], tasks = [], users = [] }: 
                   </div>
                   <div className="w-full h-2 rounded-full bg-muted/60 overflow-hidden">
                     <div
-                      className="h-full bg-primary transition-all duration-500 rounded-full"
+                      className="h-full bg-primary transition-[width] duration-500 ease-out rounded-full"
                       style={{ width: `${st.pct}%` }}
                     />
                   </div>

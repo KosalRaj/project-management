@@ -309,7 +309,7 @@ export function CommandPalette({
                       type="button"
                       onClick={act.action}
                       onMouseEnter={() => setSelectedIndex(currentIndex)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors cursor-pointer text-left ${
                         isSelected
                           ? 'bg-primary/10 text-primary font-semibold'
                           : 'text-foreground/90 hover:bg-muted/60'
@@ -350,7 +350,7 @@ export function CommandPalette({
                         navigate({ to: '/projects/$projectId', params: { projectId: proj.id } })
                       }}
                       onMouseEnter={() => setSelectedIndex(currentIndex)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors cursor-pointer text-left ${
                         isSelected
                           ? 'bg-primary/10 text-primary font-semibold'
                           : 'text-foreground/90 hover:bg-muted/60'
@@ -388,7 +388,7 @@ export function CommandPalette({
                         navigate({ to: '/tasks' })
                       }}
                       onMouseEnter={() => setSelectedIndex(currentIndex)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors cursor-pointer text-left ${
                         isSelected
                           ? 'bg-primary/10 text-primary font-semibold'
                           : 'text-foreground/90 hover:bg-muted/60'
@@ -428,7 +428,7 @@ export function CommandPalette({
                         navigate({ to: '/users' })
                       }}
                       onMouseEnter={() => setSelectedIndex(currentIndex)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors cursor-pointer text-left ${
                         isSelected
                           ? 'bg-primary/10 text-primary font-semibold'
                           : 'text-foreground/90 hover:bg-muted/60'

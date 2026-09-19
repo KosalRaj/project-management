@@ -133,7 +133,6 @@ function UsersPage() {
       showToast(`Created user account for ${data.name}`)
     } catch (err: any) {
       showToast(err?.message || 'Failed to create user', 'error')
-      throw err
     }
   }
 
@@ -146,7 +145,6 @@ function UsersPage() {
       showToast(`Updated profile for ${data.name}`)
     } catch (err: any) {
       showToast(err?.message || 'Failed to update user', 'error')
-      throw err
     }
   }
 

@@ -26,7 +26,10 @@ export function AvatarImage({
 }: AvatarPrimitive.Image.Props): React.ReactElement {
   return (
     <AvatarPrimitive.Image
-      className={cn("size-full object-cover", className)}
+      className={cn(
+        "size-full object-cover outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10",
+        className,
+      )}
       data-slot="avatar-image"
       {...props}
     />

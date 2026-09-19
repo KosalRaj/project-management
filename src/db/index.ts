@@ -15,16 +15,23 @@ function getDatabaseConfig() {
 
 const config = getDatabaseConfig()
 
-export const client = createClient({
-  url: config.url,
-  authToken: config.authToken,
-})
+export const client: ReturnType<typeof createClient> =
+  typeof window === 'undefined'
+    ? createClient({
+        url: config.url,
+        authToken: config.authToken,
+      })
+    : (null as unknown as ReturnType<typeof createClient>)
 
-export const db = drizzle(client, { schema })
+export const db: ReturnType<typeof drizzle<typeof schema>> =
+  typeof window === 'undefined'
+    ? drizzle(client, { schema })
+    : (null as unknown as ReturnType<typeof drizzle<typeof schema>>)
 
 let initPromise: Promise<void> | null = null
 
 export async function ensureTablesExist() {
+  if (typeof window !== 'undefined') return
   if (initPromise) return initPromise
 
   initPromise = (async () => {
@@ -128,6 +135,20 @@ export async function ensureTablesExist() {
         await client.execute(`ALTER TABLE tasks ADD COLUMN attachments TEXT NOT NULL DEFAULT '[]';`)
       } catch (_) {}
 
+      // Gracefully ensure email verification and notification preference columns exist on users
+      try {
+        await client.execute(`ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 1;`)
+      } catch (_) {}
+      try {
+        await client.execute(`ALTER TABLE users ADD COLUMN email_verification_token TEXT;`)
+      } catch (_) {}
+      try {
+        await client.execute(`ALTER TABLE users ADD COLUMN email_verification_expires_at TEXT;`)
+      } catch (_) {}
+      try {
+        await client.execute(`ALTER TABLE users ADD COLUMN notification_preferences TEXT NOT NULL DEFAULT '{"notifyOnTaskAssigned":true,"notifyOnStatusChange":true,"notifyOnHealthAlert":true,"notifyOnMention":true}';`)
+      } catch (_) {}
+
       await client.execute(`
         CREATE TABLE IF NOT EXISTS notifications (
           id TEXT PRIMARY KEY,
@@ -154,6 +175,22 @@ export async function ensureTablesExist() {
           entity_title TEXT NOT NULL,
           details TEXT,
           created_at TEXT
+        );
+      `)
+
+      await client.execute(`
+        CREATE TABLE IF NOT EXISTS email_logs (
+          id TEXT PRIMARY KEY,
+          recipient_email TEXT NOT NULL,
+          recipient_name TEXT,
+          subject TEXT NOT NULL,
+          template_type TEXT NOT NULL,
+          html_body TEXT NOT NULL,
+          text_body TEXT,
+          status TEXT NOT NULL DEFAULT 'delivered',
+          error_message TEXT,
+          metadata TEXT,
+          sent_at TEXT
         );
       `)
     } catch (err) {

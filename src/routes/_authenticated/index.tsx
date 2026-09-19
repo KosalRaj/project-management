@@ -245,7 +245,6 @@ function DashboardPage() {
       setSelectedItemForEdit(null)
     } catch (err: any) {
       showToast(err?.message || 'Failed to save initiative', 'error')
-      throw err
     } finally {
       setIsSubmitting(false)
     }
@@ -483,7 +482,7 @@ function DashboardPage() {
                 key={p.id}
                 to="/projects/$projectId"
                 params={{ projectId: p.id }}
-                className="group relative flex flex-col justify-between p-4 rounded-2xl border border-border/70 bg-card/85 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-all backdrop-blur-md cursor-pointer"
+                className="group relative flex flex-col justify-between p-4 rounded-2xl border border-border/70 bg-card/85 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md transition-[transform,border-color,box-shadow] duration-150 ease-out backdrop-blur-md cursor-pointer"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -511,7 +510,7 @@ function DashboardPage() {
                     </div>
                     <div className="w-full bg-muted/60 rounded-full h-1 overflow-hidden">
                       <div
-                        className="bg-primary h-full rounded-full transition-all duration-300"
+                        className="bg-primary h-full rounded-full transition-[width] duration-300 ease-out"
                         style={{ width: `${p.progress}%` }}
                       />
                     </div>

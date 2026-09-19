@@ -112,7 +112,7 @@ export function NotificationCenter() {
     <Menu>
       <MenuTrigger
         aria-label="Open notifications center"
-        className="relative flex size-9 items-center justify-center rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/70 hover:border-border transition-all cursor-pointer text-muted-foreground hover:text-foreground"
+        className="relative flex size-9 items-center justify-center rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/70 hover:border-border transition-[background-color,border-color,color] duration-150 ease-out cursor-pointer text-muted-foreground hover:text-foreground"
       >
         <Bell className="size-4.5" />
         {unreadCount > 0 && (

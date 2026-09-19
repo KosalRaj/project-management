@@ -15,7 +15,7 @@ export function UsersStatsOverview({ users }: UsersStatsOverviewProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Users */}
-      <div className="rounded-2xl border border-border/70 bg-card/85 p-4 backdrop-blur-md transition-all hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+      <div className="rounded-2xl border border-border/70 bg-card/85 p-4 backdrop-blur-md transition-[border-color,box-shadow] duration-150 ease-out hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Total Members
@@ -33,7 +33,7 @@ export function UsersStatsOverview({ users }: UsersStatsOverviewProps) {
       </div>
 
       {/* Active Members */}
-      <div className="rounded-2xl border border-border/70 bg-card/85 p-4 backdrop-blur-md transition-all hover:border-emerald-500/30 hover:shadow-md">
+      <div className="rounded-2xl border border-border/70 bg-card/85 p-4 backdrop-blur-md transition-[border-color,box-shadow] duration-150 ease-out hover:border-emerald-500/30 hover:shadow-md">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Active Now
@@ -53,7 +53,7 @@ export function UsersStatsOverview({ users }: UsersStatsOverviewProps) {
       </div>
 
       {/* Admins & Managers */}
-      <div className="rounded-2xl border border-border/70 bg-card/85 p-4 backdrop-blur-md transition-all hover:border-violet-500/30 hover:shadow-md">
+      <div className="rounded-2xl border border-border/70 bg-card/85 p-4 backdrop-blur-md transition-[border-color,box-shadow] duration-150 ease-out hover:border-violet-500/30 hover:shadow-md">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Admins & Leads
@@ -71,7 +71,7 @@ export function UsersStatsOverview({ users }: UsersStatsOverviewProps) {
       </div>
 
       {/* Departments */}
-      <div className="rounded-2xl border border-border/70 bg-card/85 p-4 backdrop-blur-md transition-all hover:border-blue-500/30 hover:shadow-md">
+      <div className="rounded-2xl border border-border/70 bg-card/85 p-4 backdrop-blur-md transition-[border-color,box-shadow] duration-150 ease-out hover:border-blue-500/30 hover:shadow-md">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Departments

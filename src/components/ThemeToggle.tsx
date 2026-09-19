@@ -21,6 +21,13 @@ function applyThemeMode(mode: ThemeMode) {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
   const resolved = mode === 'auto' ? (prefersDark ? 'dark' : 'light') : mode
 
+  // Suppress transitions on theme switch to prevent visual smearing
+  const style = document.createElement('style')
+  style.append(
+    document.createTextNode('*,*::before,*::after{transition:none !important}')
+  )
+  document.head.append(style)
+
   document.documentElement.classList.remove('light', 'dark')
   document.documentElement.classList.add(resolved)
 
@@ -31,6 +38,13 @@ function applyThemeMode(mode: ThemeMode) {
   }
 
   document.documentElement.style.colorScheme = resolved
+
+  // Force reflow while override stylesheet is active
+  void document.body.offsetHeight
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => style.remove())
+  })
 }
 
 export default function ThemeToggle() {

@@ -129,7 +129,6 @@ function ProjectWorkspacePage() {
       })
     } catch (err: any) {
       showToast(err?.message || 'Failed to create task', 'error')
-      throw err
     } finally {
       setIsSubmitting(false)
     }
@@ -144,7 +143,6 @@ function ProjectWorkspacePage() {
       showToast('Task updated', 'success')
     } catch (err: any) {
       showToast(err?.message || 'Failed to update task', 'error')
-      throw err
     }
   }
 

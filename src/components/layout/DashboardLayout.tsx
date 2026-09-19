@@ -17,6 +17,7 @@ import ThemeToggle from '@/components/ThemeToggle'
 import { NotificationCenter } from './NotificationCenter'
 import { CommandPalette } from './CommandPalette'
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog'
+import { EmailVerificationBanner } from './EmailVerificationBanner'
 import { cn } from '@/lib/utils'
 import {
   Layers,
@@ -205,7 +206,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group cursor-pointer',
+                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-[background-color,color,border-color,box-shadow] duration-150 ease-out group cursor-pointer',
                   isActive
                     ? 'bg-primary/10 text-primary font-semibold border border-primary/20 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-xs'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
@@ -218,7 +219,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   )}
                 />
                 <span className="flex-1 truncate">{item.title}</span>
-                {isActive && <ChevronRight className="size-3.5 opacity-80 text-primary dark:text-sky-400" />}
+                {isActive && <ChevronRight className="size-3.5 opacity-80 text-primary dark:text-sky-400 rtl:-scale-x-100" />}
               </Link>
             )
           })}
@@ -227,7 +228,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Bottom User Pill */}
         <div className="p-3 border-t border-border/50">
           <Menu>
-            <MenuTrigger className="w-full flex items-center justify-between gap-2.5 p-2 rounded-xl border border-border/60 bg-muted/40 hover:bg-muted/80 transition-all text-left">
+            <MenuTrigger className="w-full flex items-center justify-between gap-2.5 p-2 rounded-xl border border-border/60 bg-muted/40 hover:bg-muted/80 transition-[background-color,border-color] duration-150 ease-out text-left">
               <div className="flex items-center gap-2.5 min-w-0">
                 <Avatar className="size-8 ring-2 ring-primary/20 shrink-0">
                   <AvatarImage src={user?.avatar || undefined} alt={user?.name || 'User'} />
@@ -374,7 +375,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <button
               type="button"
               onClick={() => setCommandPaletteOpen(true)}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-border/70 bg-muted/40 hover:bg-muted hover:border-border transition-all text-xs text-muted-foreground hover:text-foreground cursor-pointer shadow-2xs"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-border/70 bg-muted/40 hover:bg-muted hover:border-border transition-[background-color,border-color,color] duration-150 ease-out text-xs text-muted-foreground hover:text-foreground cursor-pointer shadow-2xs"
             >
               <Search className="size-3.5" />
               <span className="hidden md:inline">Search...</span>
@@ -391,7 +392,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               type="button"
               onClick={() => setShortcutsOpen(true)}
               title="Keyboard Shortcuts (?)"
-              className="flex size-9 items-center justify-center rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/70 hover:border-border transition-all cursor-pointer text-muted-foreground hover:text-foreground"
+              className="flex size-9 items-center justify-center rounded-xl border border-border/60 bg-muted/30 hover:bg-muted/70 hover:border-border transition-[background-color,border-color,color] duration-150 ease-out cursor-pointer text-muted-foreground hover:text-foreground"
             >
               <HelpCircle className="size-4.5" />
             </button>
@@ -401,7 +402,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* User Dropdown */}
             <Menu>
-              <MenuTrigger className="flex items-center gap-2 p-1.5 rounded-full hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer">
+              <MenuTrigger className="flex items-center gap-2 p-1.5 rounded-full hover:ring-2 hover:ring-primary/20 transition-[box-shadow] duration-150 ease-out cursor-pointer">
                 <Avatar className="size-8">
                   <AvatarImage src={user?.avatar || undefined} alt={user?.name || 'User'} />
                   <AvatarFallback className="text-xs font-bold text-primary">
@@ -445,6 +446,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </Menu>
           </div>
         </header>
+
+        {/* Email Verification Reminder Banner */}
+        <EmailVerificationBanner />
 
         {/* Main Body View */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto animate-in fade-in duration-200">

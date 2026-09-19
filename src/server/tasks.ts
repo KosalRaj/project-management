@@ -1,7 +1,19 @@
 import { createServerFn } from '@tanstack/react-start'
 import { db, ensureTablesExist } from '@/db'
-import { tasks, projects, activityLogs, type TaskStatus, type TaskPriority, type TaskType, type CommentItem, type AttachmentItem } from '@/db/schema'
+import {
+  tasks,
+  projects,
+  users,
+  activityLogs,
+  type TaskStatus,
+  type TaskPriority,
+  type TaskType,
+  type CommentItem,
+  type AttachmentItem,
+  type NotificationPreferences,
+} from '@/db/schema'
 import { eq, desc, inArray } from 'drizzle-orm'
+import { sendEmail, renderTaskAssignedEmail, renderStatusChangeEmail, getAppBaseUrl } from './email-service'
 
 // 1. Get all tasks with optional filters
 export const getTasksFn = createServerFn({ method: 'GET' })
@@ -145,6 +157,43 @@ export const createTaskFn = createServerFn({ method: 'POST' })
       })
     } catch (_) {}
 
+    // Dispatch assignment email if assigned to a user
+    if (newTask.assigneeId) {
+      ;(async () => {
+        try {
+          const [assignee] = await db.select().from(users).where(eq(users.id, newTask.assigneeId!))
+          if (assignee?.email) {
+            const prefs: NotificationPreferences = assignee.notificationPreferences
+              ? JSON.parse(assignee.notificationPreferences)
+              : { notifyOnTaskAssigned: true, notifyOnStatusChange: true, notifyOnHealthAlert: true, notifyOnMention: true }
+
+            if (prefs.notifyOnTaskAssigned) {
+              const appUrl = getAppBaseUrl()
+              const taskUrl = `${appUrl}/projects/${project.id}`
+              const { html, text } = renderTaskAssignedEmail(
+                assignee.name,
+                newTask,
+                project,
+                'A team member',
+                taskUrl,
+              )
+              await sendEmail({
+                to: assignee.email,
+                toName: assignee.name,
+                subject: `[Assigned] [${newTask.taskKey}] ${newTask.title}`,
+                templateType: 'task_assigned',
+                html,
+                text,
+                metadata: { taskId: newTask.id, projectId: project.id },
+              })
+            }
+          }
+        } catch (err) {
+          console.error('Failed to send task assignment email:', err)
+        }
+      })()
+    }
+
     return newTask
   })
 
@@ -171,6 +220,10 @@ export const updateTaskFn = createServerFn({ method: 'POST' })
   )
   .handler(async ({ data }) => {
     await ensureTablesExist()
+
+    // Fetch existing task for comparison
+    const [existingTask] = await db.select().from(tasks).where(eq(tasks.id, data.id)).limit(1)
+
     const { id, labels, subtasks, comments, attachments, ...rest } = data
 
     const updates: Record<string, any> = {
@@ -206,6 +259,78 @@ export const updateTaskFn = createServerFn({ method: 'POST' })
           details: `Shifted stage to ${data.status.replace('_', ' ')}`,
         })
       } catch (_) {}
+    }
+
+    // Trigger transactional emails asynchronously
+    if (updated) {
+      ;(async () => {
+        try {
+          const [project] = await db.select().from(projects).where(eq(projects.id, updated.projectId)).limit(1)
+          const appUrl = getAppBaseUrl()
+          const taskUrl = `${appUrl}/projects/${updated.projectId}`
+
+          // 1. Assignee changed notification
+          if (data.assigneeId && data.assigneeId !== existingTask?.assigneeId) {
+            const [assignee] = await db.select().from(users).where(eq(users.id, data.assigneeId))
+            if (assignee?.email) {
+              const prefs: NotificationPreferences = assignee.notificationPreferences
+                ? JSON.parse(assignee.notificationPreferences)
+                : { notifyOnTaskAssigned: true, notifyOnStatusChange: true, notifyOnHealthAlert: true, notifyOnMention: true }
+
+              if (prefs.notifyOnTaskAssigned) {
+                const { html, text } = renderTaskAssignedEmail(
+                  assignee.name,
+                  updated,
+                  project || { name: 'Project', key: 'PROJ' },
+                  'A team member',
+                  taskUrl,
+                )
+                await sendEmail({
+                  to: assignee.email,
+                  toName: assignee.name,
+                  subject: `[Assigned] [${updated.taskKey}] ${updated.title}`,
+                  templateType: 'task_assigned',
+                  html,
+                  text,
+                  metadata: { taskId: updated.id, projectId: updated.projectId },
+                })
+              }
+            }
+          }
+
+          // 2. Status change notification
+          if (data.status && existingTask && data.status !== existingTask.status && updated.assigneeId) {
+            const [assignee] = await db.select().from(users).where(eq(users.id, updated.assigneeId))
+            if (assignee?.email) {
+              const prefs: NotificationPreferences = assignee.notificationPreferences
+                ? JSON.parse(assignee.notificationPreferences)
+                : { notifyOnTaskAssigned: true, notifyOnStatusChange: true, notifyOnHealthAlert: true, notifyOnMention: true }
+
+              if (prefs.notifyOnStatusChange) {
+                const { html, text } = renderStatusChangeEmail(
+                  assignee.name,
+                  updated,
+                  existingTask.status,
+                  data.status,
+                  'A team member',
+                  taskUrl,
+                )
+                await sendEmail({
+                  to: assignee.email,
+                  toName: assignee.name,
+                  subject: `[Status Update] [${updated.taskKey}] ${updated.title}`,
+                  templateType: 'status_changed',
+                  html,
+                  text,
+                  metadata: { taskId: updated.id, oldStatus: existingTask.status, newStatus: data.status },
+                })
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error sending task event notification emails:', err)
+        }
+      })()
     }
 
     return updated

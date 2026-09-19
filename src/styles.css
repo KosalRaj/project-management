@@ -654,10 +654,10 @@ a {
   --page-slide-ease: var(--ease-smooth-out);
   --page-fade-ease: var(--ease-smooth-out);
   /* Icon swap */
-  --icon-swap-dur: 200ms;
-  --icon-swap-blur: var(--blur-small);
+  --icon-swap-dur: 300ms;
+  --icon-swap-blur: 4px;
   --icon-swap-start-scale: 0.25;
-  --icon-swap-ease: var(--ease-in-out);
+  --icon-swap-ease: cubic-bezier(0.2, 0, 0, 1);
   /* Success check */
   --check-opacity-dur: 550ms;
   --check-rotate-dur: 550ms;

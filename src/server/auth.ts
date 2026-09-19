@@ -3,6 +3,7 @@ import { eq, and, gt } from 'drizzle-orm'
 import { db, ensureTablesExist } from '../db'
 import { users, sessions, type UserRole, type UserStatus } from '../db/schema'
 import { hashPassword, verifyPassword, generateSessionToken } from './crypto'
+import { sendEmail, renderVerificationEmail, getAppBaseUrl } from './email-service'
 
 // Session duration: 30 days
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000
@@ -186,6 +187,12 @@ export const registerFn = createServerFn({ method: 'POST' })
     }
 
     const passwordHash = await hashPassword(data.password)
+
+    // Generate email verification token and 6-digit OTP code
+    const verificationToken = crypto.randomUUID().replace(/-/g, '')
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
+    const verificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+
     const [createdUser] = await db
       .insert(users)
       .values({
@@ -194,6 +201,9 @@ export const registerFn = createServerFn({ method: 'POST' })
         passwordHash,
         role: data.role || 'member',
         status: 'active',
+        emailVerified: false,
+        emailVerificationToken: `${verificationToken}:${otpCode}`,
+        emailVerificationExpiresAt: verificationExpiresAt,
         department: data.department?.trim() || 'General',
         title: data.title?.trim() || 'Team Member',
         avatar: data.avatar || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80`,
@@ -210,11 +220,30 @@ export const registerFn = createServerFn({ method: 'POST' })
       expiresAt,
     })
 
+    // Dispatch verification email asynchronously
+    const appUrl = getAppBaseUrl()
+    const verificationUrl = `${appUrl}/verify-email?token=${verificationToken}`
+    const { html, text } = renderVerificationEmail(createdUser.name, verificationUrl, otpCode)
+
+    sendEmail({
+      to: createdUser.email,
+      toName: createdUser.name,
+      subject: `[Action Required] Verify your Project Pulse account`,
+      templateType: 'verification',
+      html,
+      text,
+      metadata: { userId: createdUser.id, verificationUrl },
+    }).catch((err) => {
+      console.error('Failed to send verification email on register:', err)
+    })
+
     const { passwordHash: _, ...safeUser } = createdUser
     return {
       success: true,
       token,
       user: safeUser,
+      verificationUrl,
+      otpCode,
     }
   })
 

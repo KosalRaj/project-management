@@ -86,7 +86,7 @@ export function StatsOverview({ items, onQuickFilterStatus }: StatsOverviewProps
           <Card
             key={idx}
             onClick={stat.onClick}
-            className={`group relative overflow-hidden border border-border/70 bg-card/85 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md ${
+            className={`group relative overflow-hidden border border-border/70 bg-card/85 backdrop-blur-md transition-[transform,border-color,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md ${
               stat.onClick ? 'cursor-pointer' : ''
             }`}
           >

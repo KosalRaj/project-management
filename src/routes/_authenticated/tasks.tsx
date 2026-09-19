@@ -160,7 +160,6 @@ function TasksPage() {
       })
     } catch (err: any) {
       showToast(err?.message || 'Failed to create task', 'error')
-      throw err
     } finally {
       setIsSubmitting(false)
     }
@@ -175,7 +174,6 @@ function TasksPage() {
       showToast('Task updated', 'success')
     } catch (err: any) {
       showToast(err?.message || 'Failed to update task', 'error')
-      throw err
     }
   }
 

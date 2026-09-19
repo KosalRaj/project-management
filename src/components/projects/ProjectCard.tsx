@@ -38,7 +38,7 @@ export function ProjectCard({ project, onEdit, onDelete, isAdmin = false }: Proj
   const IconComp = PROJECT_ICONS[project.icon] || Folder
 
   return (
-    <div className="group relative flex flex-col justify-between rounded-2xl border border-border/70 bg-card/85 p-5 shadow-xs backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+    <div className="group relative flex flex-col justify-between rounded-2xl border border-border/70 bg-card/85 p-5 shadow-xs backdrop-blur-md transition-[transform,border-color,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
       {/* Top Header */}
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -136,7 +136,7 @@ export function ProjectCard({ project, onEdit, onDelete, isAdmin = false }: Proj
             params={{ projectId: project.id }}
             className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline cursor-pointer"
           >
-            Open Board <ArrowRight className="size-3.5" />
+            Open Board <ArrowRight className="size-3.5 rtl:-scale-x-100" />
           </Link>
         </div>
       </div>

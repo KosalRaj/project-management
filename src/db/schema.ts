@@ -25,6 +25,17 @@ export const users = sqliteTable('users', {
   passwordHash: text('password_hash').notNull(),
   role: text('role').notNull().default('member'), // 'admin' | 'manager' | 'member' | 'guest'
   status: text('status').notNull().default('active'), // 'active' | 'inactive' | 'suspended'
+  emailVerified: integer('email_verified', { mode: 'boolean' }).notNull().default(false),
+  emailVerificationToken: text('email_verification_token'),
+  emailVerificationExpiresAt: text('email_verification_expires_at'),
+  notificationPreferences: text('notification_preferences').notNull().default(
+    JSON.stringify({
+      notifyOnTaskAssigned: true,
+      notifyOnStatusChange: true,
+      notifyOnHealthAlert: true,
+      notifyOnMention: true,
+    }),
+  ),
   avatar: text('avatar'),
   title: text('title'),
   department: text('department'),
@@ -109,12 +120,33 @@ export const activityLogs = sqliteTable('activity_logs', {
   createdAt: text('created_at').$defaultFn(() => new Date().toISOString()),
 })
 
+export const emailLogs = sqliteTable('email_logs', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  recipientEmail: text('recipient_email').notNull(),
+  recipientName: text('recipient_name'),
+  subject: text('subject').notNull(),
+  templateType: text('template_type').notNull(), // 'verification' | 'welcome' | 'task_assigned' | 'status_changed' | 'health_alert' | 'password_reset' | 'test'
+  htmlBody: text('html_body').notNull(),
+  textBody: text('text_body'),
+  status: text('status').notNull().default('delivered'), // 'delivered' | 'simulated' | 'failed'
+  errorMessage: text('error_message'),
+  metadata: text('metadata'), // JSON string
+  sentAt: text('sent_at').$defaultFn(() => new Date().toISOString()),
+})
+
 export type Item = typeof items.$inferSelect
 export type NewItem = typeof items.$inferInsert
 
 export type ItemStatus = 'backlog' | 'in_progress' | 'in_review' | 'completed' | 'archived'
 export type ItemPriority = 'low' | 'medium' | 'high' | 'urgent'
 export type ItemCategory = 'engineering' | 'design' | 'marketing' | 'operations' | 'finance'
+
+export interface NotificationPreferences {
+  notifyOnTaskAssigned: boolean
+  notifyOnStatusChange: boolean
+  notifyOnHealthAlert: boolean
+  notifyOnMention: boolean
+}
 
 export type User = typeof users.$inferSelect
 export type SafeUser = Omit<User, 'passwordHash'>
@@ -142,6 +174,17 @@ export type NotificationType = 'task_assigned' | 'status_changed' | 'mention' | 
 
 export type ActivityLog = typeof activityLogs.$inferSelect
 export type NewActivityLog = typeof activityLogs.$inferInsert
+
+export type EmailLog = typeof emailLogs.$inferSelect
+export type NewEmailLog = typeof emailLogs.$inferInsert
+export type EmailTemplateType =
+  | 'verification'
+  | 'welcome'
+  | 'task_assigned'
+  | 'status_changed'
+  | 'health_alert'
+  | 'password_reset'
+  | 'test'
 
 export interface SubtaskItem {
   id: string

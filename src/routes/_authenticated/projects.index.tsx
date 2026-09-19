@@ -98,7 +98,6 @@ function ProjectsPage() {
       setSelectedProjectForEdit(null)
     } catch (err: any) {
       showToast(err?.message || 'Failed to save project', 'error')
-      throw err
     } finally {
       setIsSubmitting(false)
     }

@@ -121,7 +121,7 @@ export function TaskKanbanView({
                   return (
                     <div
                       key={t.id}
-                      className="group/card relative flex flex-col gap-2 rounded-xl border border-border/70 bg-card p-3 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md"
+                      className="group/card relative flex flex-col gap-2 rounded-xl border border-border/70 bg-card p-3 shadow-xs transition-[transform,border-color,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md"
                     >
                       {/* Top Bar: Key & Type & Menu */}
                       <div className="flex items-center justify-between gap-1">

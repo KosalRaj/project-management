@@ -1,9 +1,10 @@
 import { createServerFn } from '@tanstack/react-start'
 import { db, ensureTablesExist } from '@/db'
-import { projects, tasks, items, type Project, type ProjectStatus, type ProjectHealth } from '@/db/schema'
+import { projects, tasks, items, users, type Project, type ProjectStatus, type ProjectHealth, type NotificationPreferences } from '@/db/schema'
 import { seedDemoDataFn } from './items'
 import { eq, desc } from 'drizzle-orm'
 import { requireAuthUser } from './auth-helpers'
+import { sendEmail, renderHealthAlertEmail, getAppBaseUrl } from './email-service'
 
 export interface ProjectWithStats extends Project {
   totalTasks: number
@@ -141,6 +142,7 @@ export const updateProjectFn = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     await ensureTablesExist()
     const { id, ...updates } = data
+    const [existingProject] = await db.select().from(projects).where(eq(projects.id, id)).limit(1)
 
     const [updated] = await db
       .update(projects)
@@ -150,6 +152,54 @@ export const updateProjectFn = createServerFn({ method: 'POST' })
       })
       .where(eq(projects.id, id))
       .returning()
+
+    // Send health alert if health degraded
+    if (
+      updated &&
+      data.health &&
+      existingProject &&
+      data.health !== existingProject.health &&
+      (data.health === 'at_risk' || data.health === 'off_track')
+    ) {
+      ;(async () => {
+        try {
+          // If project has a lead with email, notify them
+          if (updated.leadId) {
+            const [leadUser] = await db.select().from(users).where(eq(users.id, updated.leadId))
+            if (leadUser?.email) {
+              const prefs: NotificationPreferences = leadUser.notificationPreferences
+                ? JSON.parse(leadUser.notificationPreferences)
+                : { notifyOnTaskAssigned: true, notifyOnStatusChange: true, notifyOnHealthAlert: true, notifyOnMention: true }
+
+              if (prefs.notifyOnHealthAlert) {
+                const appUrl = getAppBaseUrl()
+                const projectUrl = `${appUrl}/projects/${updated.id}`
+                const newHealthStr = data.health!
+                const oldHealthStr = existingProject.health || 'on_track'
+                const { html, text } = renderHealthAlertEmail(
+                  leadUser.name,
+                  updated,
+                  oldHealthStr,
+                  newHealthStr,
+                  projectUrl,
+                )
+                await sendEmail({
+                  to: leadUser.email,
+                  toName: leadUser.name,
+                  subject: `[Health Alert] Project ${updated.name} is ${newHealthStr.replace('_', ' ').toUpperCase()}`,
+                  templateType: 'health_alert',
+                  html,
+                  text,
+                  metadata: { projectId: updated.id, oldHealth: oldHealthStr, newHealth: newHealthStr },
+                })
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error sending project health alert email:', err)
+        }
+      })()
+    }
 
     return updated
   })
